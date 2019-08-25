@@ -2,3 +2,4 @@
 **/*.json
 output/
 .idea/
+venv/
