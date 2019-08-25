@@ -59,10 +59,11 @@ class NPCSpider(scrapy.Spider):
         if self.lang == "en" or self.lang == "de":
             name = title[:title.index(" - NPC -")]
             if "[Deprecated for 4.x]" in name:
-                name = name[name.index("[Deprecated for 4.x]"):]
-            elif "[DEPRECATED] " in name:
-                name = name[name.index("[DEPRECATED] "):]
-        elif self.lang == "fr":
+                name = name[20:]
+            elif "[UNUSED]" in name:
+                name = name[8:]
+
+        elif self.lang == "fr" or self.lang == "es":
             name = title[:title.index(" - PNJ -")]
         else:
             return ""

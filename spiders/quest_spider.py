@@ -95,6 +95,8 @@ class QuestSpider(scrapy.Spider):
         if " - Quest -" not in title:
             return ""
         title = title[:title.index(" - Quest -")]
+        if "[DEPRECATED]" in title:
+            title = title[13:]
         return title
 
     @staticmethod
