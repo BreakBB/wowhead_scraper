@@ -52,33 +52,37 @@ class QuestSpider(scrapy.Spider):
 
         yield result
 
-    def __parse_description(self, response):
+    def __parse_description(self, response) -> str:
         text_parts = response.selector.xpath("//div[@class='text']/h2/following-sibling::text()").getall()
         desc = " ".join(d.strip() for d in text_parts)
         desc = desc.strip()
-        if self.lang == "de":
+        if self.lang == "en":
+            desc = self.__filter_en_description(desc)
+        elif self.lang == "de":
             desc = self.__filter_de_description(desc)
         elif self.lang == "fr":
             desc = self.__filter_fr_description(desc)
-
+        desc = desc.replace("  ", " ")
         if desc.startswith("["):
             desc = desc[1:-1]
         return desc.strip()
 
-    def __parse_objective(self, response):
+    def __parse_objective(self, response) -> str:
         obj: str = response.selector.xpath("//meta[@name='description']/@content").get()
-        if self.lang == "de":
+        if self.lang == "en":
+            objective = self.__filter_en_objective(obj)
+        elif self.lang == "de":
             objective = self.__filter_de_objective(obj)
         elif self.lang == "fr":
             objective = self.__filter_fr_objective(obj)
         else:
             objective = obj
-        return objective
+        return objective.strip()
 
-    def __parse_title(self, response):
+    def __parse_title(self, response) -> str:
         title: str = response.selector.xpath("//title/text()").get()
-        if self.lang == "de":
-            title = self.__filter_de_title(title)
+        if self.lang == "en" or self.lang == "de":
+            title = self.__filter_en_de_title(title)
         elif self.lang == "fr":
             title = self.__filter_fr_title(title)
 
@@ -87,25 +91,43 @@ class QuestSpider(scrapy.Spider):
         return title.strip()
 
     @staticmethod
-    def __filter_de_title(title):
+    def __filter_en_de_title(title: str) -> str:
         if " - Quest -" not in title:
             return ""
         title = title[:title.index(" - Quest -")]
         return title
 
     @staticmethod
-    def __filter_fr_title(title):
+    def __filter_fr_title(title: str) -> str:
         if " - Quête -" not in title:
             return ""
         title = title[:title.index(" - Quête -")]
         return title
 
     @staticmethod
-    def __filter_de_description(desc):
+    def __filter_en_description(desc: str) -> str:
+        if "You will learn" in desc:
+            desc = desc[:desc.index("You will learn")]
+        if "You will receive" in desc:
+            desc = desc[:desc.index("You will receive")]
+        if "The following spell will be cast on you" in desc:
+            desc = desc[:desc.index("The following spell will be cast on you")]
+        if "You will be able to choose one of these rewards" in desc:
+            desc = desc[:desc.index("You will be able to choose one of these rewards")]
+        if "Upon completion of this quest" in desc:
+            desc = desc[:desc.index("Upon completion of this quest")]
+        if "\n" in desc:
+            desc = desc[:desc.index("\n")]
+        return desc.strip()
+
+    @staticmethod
+    def __filter_de_description(desc: str) -> str:
         if "Ihr erlernt" in desc:
             desc = desc[:desc.index("Ihr erlernt")]
         if "Ihr bekommt" in desc:
             desc = desc[:desc.index("Ihr bekommt")]
+        if "Der folgende Zauber wird auf euch gewirkt" in desc:
+            desc = desc[:desc.index("Der folgende Zauber wird auf euch gewirkt")]
         if "Auf Euch wartet eine dieser Belohnungen" in desc:
             desc = desc[:desc.index("Auf Euch wartet eine dieser Belohnungen")]
         if "Bei Abschluss dieser Quest" in desc:
@@ -115,11 +137,13 @@ class QuestSpider(scrapy.Spider):
         return desc.strip()
 
     @staticmethod
-    def __filter_fr_description(desc):
+    def __filter_fr_description(desc: str) -> str:
         if "Vous apprendrez" in desc:
             desc = desc[:desc.index("Vous apprendrez")]
         if "Vous recevrez" in desc:
             desc = desc[:desc.index("Vous recevrez")]
+        if "Vous allez être la cible du sort suivant" in desc:
+            desc = desc[:desc.index("Vous allez être la cible du sort suivant")]
         if "Vous pourrez choisir une" in desc:
             desc = desc[:desc.index("Vous pourrez choisir une")]
         if "Lors de l'achèvement de cette" in desc:
@@ -127,6 +151,18 @@ class QuestSpider(scrapy.Spider):
         if "\n" in desc:
             desc = desc[:desc.index("\n")]
         return desc.strip()
+
+    @staticmethod
+    def __filter_en_objective(obj):
+        if obj.startswith("Upon completion of this quest") or obj.startswith("A level "):
+            objective = ""
+        elif " A level " in obj:
+            objective = obj[:obj.index(" A level ")]
+        else:
+            objective = obj
+        if objective.startswith("["):
+            objective = objective[1:-1]
+        return objective.strip()
 
     @staticmethod
     def __filter_de_objective(obj):

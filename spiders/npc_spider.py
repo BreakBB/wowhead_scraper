@@ -56,7 +56,7 @@ class NPCSpider(scrapy.Spider):
 
     def __parse__title(self, response):
         title: str = response.selector.xpath("//title/text()").get()
-        if self.lang == "de":
+        if self.lang == "en" or self.lang == "de":
             name = title[:title.index(" - NPC -")]
         elif self.lang == "fr":
             name = title[:title.index(" - PNJ -")]
