@@ -36,7 +36,7 @@ class NPCSpider(scrapy.Spider):
         npc_id = response.url.split("/")[-2][4:]
 
         # inspect_response(response, self)
-        name = self.__parse__title(response)
+        name = self.__parse_title(response)
 
         result = {
             "id": int(npc_id),
@@ -54,10 +54,14 @@ class NPCSpider(scrapy.Spider):
 
         self.logger.info("Formatting done!")
 
-    def __parse__title(self, response):
+    def __parse_title(self, response):
         title: str = response.selector.xpath("//title/text()").get()
         if self.lang == "en" or self.lang == "de":
             name = title[:title.index(" - NPC -")]
+            if "[Deprecated for 4.x]" in name:
+                name = name[name.index("[Deprecated for 4.x]"):]
+            elif "[DEPRECATED] " in name:
+                name = name[name.index("[DEPRECATED] "):]
         elif self.lang == "fr":
             name = title[:title.index(" - PNJ -")]
         else:
