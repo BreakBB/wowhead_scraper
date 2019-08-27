@@ -34,6 +34,7 @@ class Runner:
             "LOG_LEVEL": "INFO",
             "FEED_EXPORT_ENCODING": "utf-8",
             "FEED_FORMAT": "json",
+            "CONCURRENT_REQUESTS": 32,
             "FEED_URI": str(feed_uri),
             "COOKIES_ENABLED": False
         })
