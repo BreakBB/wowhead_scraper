@@ -1,10 +1,12 @@
+import re
+
 import scrapy
 from scrapy import signals
 
 from utils import Filter
 from utils.formatter import Formatter
 
-from filter import get_quest_str_by_lang, get_filter_list_by_lang
+from lang_data import get_quest_str_by_lang, get_filter_list_by_lang, get_regex_list_by_lang
 
 
 class QuestSpider(scrapy.Spider):
@@ -85,6 +87,11 @@ class QuestSpider(scrapy.Spider):
 
     def __filter_response_text(self, text: str) -> str:
         filter_list = get_filter_list_by_lang(self.lang)
+        regex_list = get_regex_list_by_lang(self.lang)
+
+        for r in regex_list:
+            text = re.sub(r, "", text)
+        text = text.strip()
 
         for f in filter_list:
             if text.startswith(f):
@@ -94,6 +101,8 @@ class QuestSpider(scrapy.Spider):
                 break
         if "\n" in text:
             text = text[:text.index("\n")]
+        if "|n" in text:
+            text = text[:text.index("|n")]
         text = text.replace("  ", " ").strip()
         if text.startswith("["):
             text = text[1:-1]
