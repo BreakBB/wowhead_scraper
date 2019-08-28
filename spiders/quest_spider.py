@@ -103,6 +103,8 @@ class QuestSpider(scrapy.Spider):
             text = text[:text.index("\n")]
         if "|n" in text:
             text = text[:text.index("|n")]
+        if text.endswith("\\"):
+            text = text[:-1]
         text = text.replace("  ", " ").strip()
         if text.startswith("["):
             text = text[1:-1]

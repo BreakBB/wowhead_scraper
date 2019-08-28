@@ -1,7 +1,9 @@
-QUEST = "Quest"
+QUEST = "Misión"
 
 FILTERS = [
-    "Una Misión de",
+    "Un(a) misión",
+    "Una Misión",
+    "Una misión de",
     "Un/una misión de",
     "Aprenderás",
     "Recibirás",

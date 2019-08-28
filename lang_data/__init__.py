@@ -35,5 +35,7 @@ def get_filter_list_by_lang(lang: str) -> List[str]:
 def get_regex_list_by_lang(lang: str) -> List[str]:
     if lang == "en":
         return EN_REGEX
+    if lang == "fr" or lang == "de" or lang == "es":
+        return []
     else:
         raise ValueError("Language '{}' not supported".format(lang))
