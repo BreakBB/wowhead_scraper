@@ -1,5 +1,7 @@
+from typing import Union, Dict
+
 import scrapy
-from scrapy import signals
+from scrapy import signals, Spider
 from scrapy.shell import inspect_response
 
 from utils import Filter
@@ -14,7 +16,7 @@ class NPCSpider(scrapy.Spider):
     lang = ""
     base_url = "https://{}.classic.wowhead.com/npc={}/"
 
-    def __init__(self, lang="en", **kwargs):
+    def __init__(self, lang="en", **kwargs) -> None:
         super().__init__(**kwargs)
         self.lang = lang
 
@@ -23,12 +25,12 @@ class NPCSpider(scrapy.Spider):
         self.start_urls = [self.base_url.format(lang, nid) for nid in npc_ids]
 
     @classmethod
-    def from_crawler(cls, crawler, *args, **kwargs):
+    def from_crawler(cls, crawler, *args, **kwargs) -> Spider:
         spider = super(NPCSpider, cls).from_crawler(crawler, *args, **kwargs)
         crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
         return spider
 
-    def parse(self, response):
+    def parse(self, response) -> Dict[str, Union[int, str]]:
         if "?notFound=" in response.url:
             npc_id = response.url[response.url.index("?notFound="):]
             self.logger.warning("NPC with ID '{}' could not be found.".format(npc_id))
@@ -46,7 +48,7 @@ class NPCSpider(scrapy.Spider):
 
         yield result
 
-    def spider_closed(self, spider):
+    def spider_closed(self, spider) -> None:
         self.logger.info("Spider closed. Starting formatter")
 
         f = Formatter()
@@ -54,18 +56,22 @@ class NPCSpider(scrapy.Spider):
 
         self.logger.info("Formatting done!")
 
-    def __parse_title(self, response):
-        title: str = response.selector.xpath("//title/text()").get()
+    def __parse_title(self, response) -> str:
+        title = response.selector.xpath("//title/text()").get()
         if self.lang == "en" or self.lang == "de":
-            name = title[:title.index(" - NPC -")]
-            if "[Deprecated for 4.x]" in name:
+            name: str = title[:title.index(" - NPC -")]
+            if name.startswith("[Deprecated for 4.x]"):
                 name = name[20:]
-            elif "[UNUSED]" in name:
+            elif name.startswith("[UNUSED]"):
                 name = name[8:]
+            elif "(Old)" in name:
+                name = name[:name.index("(Old)")]
+            elif "(Deprecated in 4.x)" in name:
+                name = name[:name.index("(Deprecated in 4.x)")]
 
         elif self.lang == "fr" or self.lang == "es":
             name = title[:title.index(" - PNJ -")]
         else:
             return ""
 
-        return name
+        return name.strip()

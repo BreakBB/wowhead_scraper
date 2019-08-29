@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
+from typing import Union
 
 from scrapy.crawler import CrawlerProcess
 
@@ -12,23 +13,23 @@ class Runner:
     target: str = ""
     output_dir: Path = None
 
-    def __init__(self, lang, target):
+    def __init__(self, lang: str, target: str) -> None:
         self.lang = lang
         self.target = target
         self.logger = getLogger(__name__)
         self.output_dir = self.__create_output_dir()
 
     @staticmethod
-    def __create_output_dir():
+    def __create_output_dir() -> Path:
         out = Path("output")
         if not out.exists():
             out.mkdir()
         return out
 
-    def run(self):
+    def run(self) -> None:
         feed_uri = self.__build_feed_uri()
         if feed_uri is None:
-            return
+            return None
 
         process = CrawlerProcess(settings={
             "LOG_LEVEL": "INFO",
@@ -47,7 +48,7 @@ class Runner:
 
         process.start()
 
-    def __build_feed_uri(self):
+    def __build_feed_uri(self) -> Union[Path, None]:
         if self.target == "npc":
             feed_uri = self.output_dir / "{}_npc_data.json".format(self.lang)
         elif self.target == "quest":
