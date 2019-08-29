@@ -107,7 +107,11 @@ class QuestSpider(scrapy.Spider):
             text = text[:-1]
         text = text.replace("  ", " ").strip()
         if text.startswith("["):
-            text = text[1:-1]
+            text = text[1:]
+        if text.endswith("]"):
+            text = text[:-1]
+        if not text.endswith(".") and not text.endswith("?") and not text.endswith("!"):
+            text += "."
         return text.strip()
 
     def spider_closed(self, spider):

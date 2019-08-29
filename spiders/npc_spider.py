@@ -58,7 +58,7 @@ class NPCSpider(scrapy.Spider):
 
     def __parse_title(self, response) -> str:
         title = response.selector.xpath("//title/text()").get()
-        if self.lang == "en" or self.lang == "de":
+        if self.lang == "en" or self.lang == "de" or self.lang == "ru":
             name: str = title[:title.index(" - NPC -")]
             if name.startswith("[Deprecated for 4.x]"):
                 name = name[20:]
