@@ -33,7 +33,7 @@ class QuestSpider(scrapy.Spider):
 
     def parse(self, response):
         if "?notFound=" in response.url:
-            qid = response.url[response.url.index("?notFound="):]
+            qid = response.url[response.url.index("?notFound=") + 10:]
             self.logger.warning("Quest with ID '{}' could not be found.".format(qid))
             return
         qid = response.url.split("/")[-2][6:]
