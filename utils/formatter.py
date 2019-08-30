@@ -26,8 +26,8 @@ class Formatter:
                     description = item["description"]
                     description = description.replace("'", "\\'")
 
-                    g.write("\t[{id}] = {{'{title}', '{desc}', '{obj}'}},\n".format(id=item["id"], title=title,
-                                                                                    desc=description, obj=objective))
+                    g.write("[{id}] = {{'{title}', '{desc}', '{obj}'}},\n".format(id=item["id"], title=title,
+                                                                                  desc=description, obj=objective))
 
                 g.write("}")
 
@@ -42,7 +42,7 @@ class Formatter:
             for item in npc_input:
                 name = item["name"]
                 name = name.replace("'", "\\'")
-                g.write("\t[{}] = '{}',\n".format(item["id"], name))
+                g.write("[{}] = '{}',\n".format(item["id"], name))
 
             g.write("}")
 
