@@ -2,6 +2,7 @@ import re
 
 import scrapy
 from scrapy import signals
+from scrapy.shell import inspect_response
 
 from utils import Filter
 from utils.formatter import Formatter
@@ -10,7 +11,6 @@ from lang_data import get_filter_list_by_lang
 
 
 class QuestSpider(scrapy.Spider):
-
     name = "quest_scraper"
     start_urls = []
     quest_data = []
@@ -24,6 +24,7 @@ class QuestSpider(scrapy.Spider):
         f = Filter()
         quest_ids = f("quest")
         self.start_urls = [self.base_url.format(lang, qid) for qid in quest_ids]
+        # self.start_urls = [self.base_url.format(lang, 28)]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -37,10 +38,11 @@ class QuestSpider(scrapy.Spider):
             self.logger.warning("Quest with ID '{}' could not be found.".format(qid))
             return
         qid = response.url.split("/")[-2][6:]
+        # inspect_response(response, self)
 
         title = self.__parse_title(response)
-        objective = self.__parse_objective(response)
-        description = self.__parse_description(response)
+
+        description, objective = self.__parse_objective_and_description(response)
 
         result = {
             "id": int(qid),
@@ -53,65 +55,62 @@ class QuestSpider(scrapy.Spider):
         yield result
 
     def __parse_title(self, response) -> str:
-        title: str = response.selector.xpath("//title/text()").get()
+        title: str = response.xpath("//div[@class='text']/h1[@class='heading-size-1']/text()").get()
 
         title = self.__filter_title(title)
         return title
 
-    def __filter_title(self, title: str) -> str:
-        quest_str = get_quest_str_by_lang(self.lang)
-        quest_str = " - {} -".format(quest_str)
-
-        if quest_str not in title:
-            return ""
-        title = title[:title.index(quest_str)]
+    @staticmethod
+    def __filter_title(title: str) -> str:
         if title.startswith("[DEPRECATED]"):
             title = title[13:]
         elif title.startswith("["):
-            title = title[1:-1]
+            return ""
         return title.strip()
 
-    def __parse_description(self, response) -> str:
-        text_parts = response.selector.xpath("//div[@class='text']/h2/following-sibling::text()").getall()
-        desc = " ".join(d.strip() for d in text_parts)
-        desc = desc.strip()
+    def __parse_objective_and_description(self, response):
+        text_snippets = response.xpath("//div[@class='block-block-bg is-btf']//following-sibling::text()").extract()
+        data_list = self.__filter_text_snippets(text_snippets)
+        if len(data_list) < 2:
+            self.logger.warning("Wrong structured HTML for {}".format(response.url))
+            objective = ""
+            description = ""
+        else:
+            objective = self.__filter_text(data_list[0])
+            description = self.__filter_text(data_list[1])
+        return description, objective
 
-        desc = self.__filter_response_text(desc)
-        return desc
+    @staticmethod
+    def __filter_text_snippets(text_snippets):
+        data_list = []
+        for t in text_snippets:
+            if not t.strip():
+                continue
+            if t.startswith("\n") or not data_list:
+                data_list.append(t.strip())
+            else:
+                data_list[-1] += " " + t.strip()
+        return data_list
 
-    def __parse_objective(self, response) -> str:
-        obj = response.selector.xpath("//meta[@name='description']/@content").get()
-
-        objective = self.__filter_response_text(obj)
-        return objective
-
-    def __filter_response_text(self, text: str) -> str:
+    def __filter_text(self, text: str) -> str:
         filter_list = get_filter_list_by_lang(self.lang)
-        regex_list = get_regex_list_by_lang(self.lang)
 
-        for r in regex_list:
-            text = re.sub(r, "", text)
-        text = text.strip()
+        # Don't include untranslated text pieces
+        if self.lang != "en" and ("You" in text or "you" in text or " I " in text or "bring" in text):
+            return ""
 
+        text = text.replace("\n", "")
         for f in filter_list:
             if text.startswith(f):
                 return ""
             elif f in text:
                 text = text[:text.index(f)].strip()
-                break
-        if "\n" in text:
-            text = text[:text.index("\n")]
-        if "|n" in text:
-            text = text[:text.index("|n")]
-        if text.endswith("\\"):
-            text = text[:-1]
-        text = text.replace("  ", " ").strip()
+
+        # Untranslated texts are inside brackets
         if text.startswith("["):
-            text = text[1:]
-        if text.endswith("]"):
-            text = text[:-1]
-        if not text.endswith(".") and not text.endswith("?") and not text.endswith("!"):
-            text += "."
+            return ""
+
+        text = text.replace("  ", " ")
         return text.strip()
 
     def spider_closed(self, spider):
