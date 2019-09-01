@@ -17,19 +17,44 @@ class Formatter:
                 g.write("\nLangQuestLookup = {\n")
 
                 for item in quest_input:
-                    title = item["title"]
-                    title = title.replace("'", "\\'")
+                    title = self.__get_title(item)
+                    objective = self.__get_objective(item)
+                    description = self.__get_description(item)
 
-                    objective = item["objective"]
-                    objective = objective.replace("'", "\\'")
-
-                    description = item["description"]
-                    description = description.replace("'", "\\'")
-
-                    g.write("[{id}] = {{'{title}', '{desc}', '{obj}'}},\n".format(id=item["id"], title=title,
-                                                                                  desc=description, obj=objective))
+                    g.write("[{id}] = {{{title}, {desc}, {obj}}},\n".format(id=item["id"], title=title,
+                                                                            desc=description, obj=objective))
 
                 g.write("}")
+
+    @staticmethod
+    def __get_objective(item):
+        objective = item["objective"]
+        objective = objective.replace("'", "\\'")
+        if objective:
+            objective = "'" + objective + "'"
+        else:
+            objective = "nil"
+        return objective
+
+    @staticmethod
+    def __get_title(item):
+        title = item["title"]
+        title = title.replace("'", "\\'")
+        if title:
+            title = "'" + title + "'"
+        else:
+            title = "nil"
+        return title
+
+    @staticmethod
+    def __get_description(item):
+        description = item["description"]
+        description = description.replace("'", "\\'")
+        if description:
+            description = "'" + description + "'"
+        else:
+            description = "nil"
+        return description
 
     @staticmethod
     def __format_npc_names(lang):
