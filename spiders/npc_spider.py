@@ -60,18 +60,20 @@ class NPCSpider(scrapy.Spider):
         title = response.selector.xpath("//title/text()").get()
         if self.lang == "en" or self.lang == "de" or self.lang == "ru":
             name: str = title[:title.index(" - NPC -")]
-            if name.startswith("[Deprecated for 4.x]"):
-                name = name[20:]
-            elif name.startswith("[UNUSED]"):
-                name = name[8:]
-            elif "(Old)" in name:
-                name = name[:name.index("(Old)")]
-            elif "(Deprecated in 4.x)" in name:
-                name = name[:name.index("(Deprecated in 4.x)")]
-
         elif self.lang == "fr" or self.lang == "es":
             name = title[:title.index(" - PNJ -")]
+        elif self.lang == "cn":
+            name = title[:title.index("—NPC—")]
         else:
             return ""
+
+        if name.startswith("[Deprecated for 4.x]"):
+            name = name[20:]
+        elif name.startswith("[UNUSED]"):
+            name = name[8:]
+        elif "(Old)" in name:
+            name = name[:name.index("(Old)")]
+        elif "(Deprecated in 4.x)" in name:
+            name = name[:name.index("(Deprecated in 4.x)")]
 
         return name.strip()
