@@ -6,7 +6,7 @@ from scrapy import signals
 from utils import Filter
 from utils.formatter import Formatter
 
-from lang_data import get_quest_str_by_lang, get_filter_list_by_lang, get_regex_list_by_lang
+from lang_data import get_filter_list_by_lang
 
 
 class QuestSpider(scrapy.Spider):
