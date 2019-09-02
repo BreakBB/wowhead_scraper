@@ -14,7 +14,8 @@ class Formatter:
                 quest_input.sort(key=lambda k: k["id"])
 
             with open(Path(__file__).parent / "../output/{}.lua".format(lang), "a", encoding="utf-8") as g:
-                g.write("\nLangQuestLookup = {\n")
+                table_name = self.__get_table_name(lang, "quest")
+                g.write(table_name)
 
                 for item in quest_input:
                     title = self.__get_title(item)
@@ -25,6 +26,25 @@ class Formatter:
                                                                             desc=description, obj=objective))
 
                 g.write("}")
+
+    def __get_table_name(self, lang, target="npc"):
+        if target == "npc":
+            table_name = "LangNameLookup['{}'] = {{\n"
+        else:
+            table_name = "\nLangQuestLookup['{}'] = {{\n"
+        if lang == "en":
+            table_name = table_name.format("enUS")
+        if lang == "de":
+            table_name = table_name.format("deDE")
+        if lang == "fr":
+            table_name = table_name.format("frFR")
+        if lang == "es":
+            table_name = table_name.format("esES")
+        if lang == "ru":
+            table_name = table_name.format("ruRU")
+        if lang == "ch":
+            table_name = table_name.format("zhCN")
+        return table_name
 
     @staticmethod
     def __get_objective(item):
@@ -56,13 +76,13 @@ class Formatter:
             description = "nil"
         return description
 
-    @staticmethod
-    def __format_npc_names(lang):
+    def __format_npc_names(self, lang):
         with open(Path(__file__).parent / "../output/{}_npc_data.json".format(lang), "r", encoding="utf-8") as f:
             npc_input = json.load(f)
             npc_input.sort(key=lambda k: int(k["id"]))
         with open(Path(__file__).parent / "../output/{}.lua".format(lang), "w", encoding="utf-8") as g:
-            g.write("\nLangNameLookup = {\n")
+            table_name = self.__get_table_name(lang)
+            g.write(table_name)
 
             for item in npc_input:
                 name = item["name"]
@@ -74,4 +94,5 @@ class Formatter:
 
 if __name__ == '__main__':
     f = Formatter()
-    f("fr", "quest")
+    f("es", "npc")
+    f("es", "quest")
