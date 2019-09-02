@@ -61,7 +61,7 @@ class Formatter:
         with open(Path(__file__).parent / "../output/{}_npc_data.json".format(lang), "r", encoding="utf-8") as f:
             npc_input = json.load(f)
             npc_input.sort(key=lambda k: int(k["id"]))
-        with open(Path(__file__).parent / "../output/{}.lua".format(lang), "a", encoding="utf-8") as g:
+        with open(Path(__file__).parent / "../output/{}.lua".format(lang), "w", encoding="utf-8") as g:
             g.write("\nLangNameLookup = {\n")
 
             for item in npc_input:

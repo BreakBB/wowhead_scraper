@@ -117,6 +117,7 @@ class QuestSpider(scrapy.Spider):
         self.logger.info("Spider closed. Starting formatter...")
 
         f = Formatter()
+        f(self.lang, "npc")
         f(self.lang, "quest")
 
         self.logger.info("Formatting done!")
