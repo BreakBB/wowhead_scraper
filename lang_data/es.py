@@ -4,5 +4,6 @@ FILTERS = [
     "También recibirás",
     "Te van a lanzar el siguiente hechizo",
     "Podrás elegir una de estas recompensas",
-    "Cuando completes esta misión ganarás"
+    "Cuando completes esta misión ganarás",
+    "temp text 02"
 ]
