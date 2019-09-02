@@ -24,7 +24,7 @@ class QuestSpider(scrapy.Spider):
         f = Filter()
         quest_ids = f("quest")
         self.start_urls = [self.base_url.format(lang, qid) for qid in quest_ids]
-        # self.start_urls = [self.base_url.format(lang, 28)]
+        # self.start_urls = [self.base_url.format(lang, qid) for qid in [6584, 2479, 849]]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -76,42 +76,43 @@ class QuestSpider(scrapy.Spider):
             objective = ""
             description = ""
         else:
-            objective = self.__filter_text(data_list[0])
-            description = self.__filter_text(data_list[1])
+            objective = data_list[0]
+            description = data_list[1]
         return description, objective
 
-    @staticmethod
-    def __filter_text_snippets(text_snippets):
+    def __filter_text_snippets(self, text_snippets):
         data_list = []
         for t in text_snippets:
+            t = self.__filter_text(t)
             if not t.strip():
                 continue
             if t.startswith("\n") or not data_list:
+                t = t.replace("\n", "")
                 data_list.append(t.strip())
             else:
-                data_list[-1] += " " + t.strip()
-        return data_list
+                t = t.replace("\n", "")
+                data_list[-1] = data_list[-1] + " " + t.strip()
+        return list(filter(None, data_list))
 
     def __filter_text(self, text: str) -> str:
         filter_list = get_filter_list_by_lang(self.lang)
 
         # Don't include untranslated text pieces
-        if self.lang != "en" and ("You" in text or "you" in text or " I " in text or "bring" in text):
+        if self.lang != "en" and (
+                "You" in text or "you" in text or " I " in text or " to " in text or "[" in text or "]" in text):
             return ""
 
-        text = text.replace("\n", "")
+        # text = text.replace("\n", "")
         for f in filter_list:
             if text.startswith(f):
                 return ""
             elif f in text:
-                text = text[:text.index(f)].strip()
-
-        # Untranslated texts are inside brackets
-        if text.startswith("["):
-            return ""
+                text = text[:text.index(f)]
 
         text = text.replace("  ", " ")
-        return text.strip()
+        if text.endswith("\\"):
+            text = text[:-1]
+        return text
 
     def spider_closed(self, spider):
         self.logger.info("Spider closed. Starting formatter...")
