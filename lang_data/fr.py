@@ -1,10 +1,12 @@
-FILTERS = [
-    "Vous apprendrez",
-    "Vous recevrez",
-    "Vous recevrez également",
-    "Vous allez être la cible du sort suivant",
-    "Vous pourrez choisir une de ces récompenses",
-    "Lors de l'achèvement de cette quête vous gagnerez",
-    "Objet fourni",
-    "temp text 02"
+FILTRES = [
+     "Terminer cette quête sera",
+     "Si vous êtes intéressé par le 8.1.5",
+     "Tu vas apprendre",
+     "Vous allez recevoir",
+     "Vous recevrez aussi",
+     "Le sort suivant sera jeté sur vous",
+     "Vous pourrez choisir l'une de ces récompenses",
+     "A la fin de cette quête, vous gagnerez",
+     "Article fourni",
+     "Texte temporaire 02 - journal."
 ]
