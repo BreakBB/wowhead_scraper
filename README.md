@@ -20,5 +20,5 @@ The available parameters are:
 
 | Parameter        | Type  | Description                      | Possible values                    | Default |
 |------------------|-------|----------------------------------|------------------------------------|---------|
-| `-l`, `--lang`   | `str` | The language you want to scrape. | `en`, `de`, `fr`, `es`, `ru`, `ch` | `en`    |
+| `-l`, `--lang`   | `str` | The language you want to scrape. | `en`, `de`, `fr`, `es`, `ru`, `cn` | `en`    |
 | `-t`, `--target` | `str` | The target you want to scrape.   | `npc`, `quest`                     | `npc`   |
