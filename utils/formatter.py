@@ -27,24 +27,28 @@ class Formatter:
 
                 g.write("}")
 
-    def __get_table_name(self, lang, target="npc"):
+    @staticmethod
+    def __get_table_name(lang, target="npc"):
         if target == "npc":
             table_name = "LangNameLookup['{}'] = {{\n"
         else:
             table_name = "\nLangQuestLookup['{}'] = {{\n"
         if lang == "en":
-            table_name = table_name.format("enUS")
-        if lang == "de":
-            table_name = table_name.format("deDE")
-        if lang == "fr":
-            table_name = table_name.format("frFR")
-        if lang == "es":
-            table_name = table_name.format("esES")
-        if lang == "ru":
-            table_name = table_name.format("ruRU")
-        if lang == "ch":
-            table_name = table_name.format("zhCN")
-        return table_name
+            return table_name.format("enUS")
+        elif lang == "de":
+            return table_name.format("deDE")
+        elif lang == "fr":
+            return table_name.format("frFR")
+        elif lang == "es":
+            return table_name.format("esES")
+        elif lang == "ru":
+            return table_name.format("ruRU")
+        elif lang == "cn":
+            return table_name.format("zhCN")
+        elif lang == "pt":
+            return table_name.format("ptBR")
+        else:
+            raise ValueError("Language '{}' not supported for formatting!".format(lang))
 
     @staticmethod
     def __get_objective(item):
