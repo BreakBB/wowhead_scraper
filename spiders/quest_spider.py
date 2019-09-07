@@ -99,7 +99,7 @@ class QuestSpider(scrapy.Spider):
 
         # Don't include untranslated text pieces
         if self.lang != "en" and (
-                "You" in text or "you" in text or " I " in text or " to " in text or "[" in text or "]" in text):
+                "You" in text or "you" in text or " the " in text or " I " in text or " to " in text or "[" in text or "]" in text):
             return ""
 
         # text = text.replace("\n", "")
