@@ -2,7 +2,7 @@ import scrapy
 from scrapy import signals
 from scrapy.shell import inspect_response
 
-from data import QUEST_IDS
+from ids import QUEST_IDS
 from utils.formatter import Formatter
 
 from lang_data import get_filter_list_by_lang

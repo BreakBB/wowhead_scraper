@@ -4,7 +4,7 @@ import scrapy
 from scrapy import signals, Spider
 from scrapy.shell import inspect_response
 
-from data import NPC_IDS
+from ids import NPC_IDS
 from utils.formatter import Formatter
 
 
