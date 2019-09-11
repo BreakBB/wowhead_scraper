@@ -1,10 +1,8 @@
-import re
-
 import scrapy
 from scrapy import signals
 from scrapy.shell import inspect_response
 
-from utils import Filter
+from data import QUEST_IDS
 from utils.formatter import Formatter
 
 from lang_data import get_filter_list_by_lang
@@ -20,10 +18,7 @@ class QuestSpider(scrapy.Spider):
     def __init__(self, lang="en", **kwargs):
         super().__init__(**kwargs)
         self.lang = lang
-
-        f = Filter()
-        quest_ids = f("quest")
-        self.start_urls = [self.base_url.format(lang, qid) for qid in quest_ids]
+        self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
         # self.start_urls = [self.base_url.format(lang, qid) for qid in [6584, 2479, 849]]
 
     @classmethod

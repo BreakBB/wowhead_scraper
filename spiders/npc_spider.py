@@ -4,7 +4,7 @@ import scrapy
 from scrapy import signals, Spider
 from scrapy.shell import inspect_response
 
-from utils import Filter
+from data import NPC_IDS
 from utils.formatter import Formatter
 
 
@@ -19,10 +19,7 @@ class NPCSpider(scrapy.Spider):
     def __init__(self, lang="en", **kwargs) -> None:
         super().__init__(**kwargs)
         self.lang = lang
-
-        f = Filter()
-        npc_ids = f("npc")
-        self.start_urls = [self.base_url.format(lang, nid) for nid in npc_ids]
+        self.start_urls = [self.base_url.format(lang, nid) for nid in NPC_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs) -> Spider:
