@@ -1,34 +1,60 @@
 import json
 from pathlib import Path
 
+from utils import OUTPUT_DIR
+
 
 class Formatter:
 
+    lang: str
+    lang_dir: Path
+
     def __call__(self, lang="en", f_type="npc", **kwargs):
+        self.lang = lang
+        self.lang_dir = OUTPUT_DIR / lang
+        if not self.lang_dir.exists():
+            self.lang_dir.mkdir()
 
         if f_type == "npc":
-            self.__format_npc_names(lang)
+            self.__format_npc_names()
         elif f_type == "quest":
-            with open(Path(__file__).parent / "../output/{}_quest_data.json".format(lang), "r", encoding="utf-8") as f:
-                quest_input = json.load(f)
-                quest_input.sort(key=lambda k: k["id"])
+            self.__format_quests()
 
-            with open(Path(__file__).parent / "../output/{}.lua".format(lang), "a", encoding="utf-8") as g:
-                table_name = self.__get_table_name(lang, "quest")
-                g.write(table_name)
+    def __format_npc_names(self):
+        with Path(self.lang_dir / "npc_data.json").open("r", encoding="utf-8") as f:
+            npc_input = json.load(f)
+            npc_input.sort(key=lambda k: int(k["id"]))
+        with Path(self.lang_dir / "lookup.lua").open("w", encoding="utf-8") as g:
+            table_name = self.__get_table_name()
+            g.write(table_name)
 
-                for item in quest_input:
-                    title = self.__get_title(item)
-                    objective = self.__get_objective(item)
-                    description = self.__get_description(item)
+            for item in npc_input:
+                name = item["name"]
+                name = name.replace("'", "\\'")
+                g.write("[{}] = '{}',\n".format(item["id"], name))
 
-                    g.write("[{id}] = {{{title}, {desc}, {obj}}},\n".format(id=item["id"], title=title,
-                                                                            desc=description, obj=objective))
+            g.write("}")
 
-                g.write("}")
+    def __format_quests(self):
+        with Path(self.lang_dir / "quest_data.json").open("r", encoding="utf-8") as f:
+            quest_input = json.load(f)
+            quest_input.sort(key=lambda k: k["id"])
+        with Path(self.lang_dir / "lookup.lua").open("a", encoding="utf-8") as g:
+            table_name = self.__get_table_name("quest")
+            g.write(table_name)
 
-    @staticmethod
-    def __get_table_name(lang, target="npc"):
+            for item in quest_input:
+                title = self.__get_title(item)
+                objective = self.__get_objective(item)
+                description = self.__get_description(item)
+
+                g.write("[{id}] = {{{title}, {desc}, {obj}}},\n".format(id=item["id"], title=title,
+                                                                        desc=description, obj=objective))
+
+            g.write("}")
+
+    def __get_table_name(self, target="npc"):
+        lang = self.lang
         if target == "npc":
             table_name = "LangNameLookup['{}'] = {{\n"
         else:
@@ -80,23 +106,8 @@ class Formatter:
             description = "nil"
         return description
 
-    def __format_npc_names(self, lang):
-        with open(Path(__file__).parent / "../output/{}_npc_data.json".format(lang), "r", encoding="utf-8") as f:
-            npc_input = json.load(f)
-            npc_input.sort(key=lambda k: int(k["id"]))
-        with open(Path(__file__).parent / "../output/{}.lua".format(lang), "w", encoding="utf-8") as g:
-            table_name = self.__get_table_name(lang)
-            g.write(table_name)
-
-            for item in npc_input:
-                name = item["name"]
-                name = name.replace("'", "\\'")
-                g.write("[{}] = '{}',\n".format(item["id"], name))
-
-            g.write("}")
-
 
 if __name__ == '__main__':
     f = Formatter()
-    f("es", "npc")
-    f("es", "quest")
+    f("de", "npc")
+    f("de", "quest")

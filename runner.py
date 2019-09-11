@@ -6,25 +6,21 @@ from typing import Union
 from scrapy.crawler import CrawlerProcess
 
 from spiders import NPCSpider, QuestSpider
+from utils import OUTPUT_DIR
 
 
 class Runner:
     lang: str = ""
     target: str = ""
-    output_dir: Path = None
+    lang_dir: Path = None
 
     def __init__(self, lang: str, target: str) -> None:
         self.lang = lang
         self.target = target
         self.logger = getLogger(__name__)
-        self.output_dir = self.__create_output_dir()
-
-    @staticmethod
-    def __create_output_dir() -> Path:
-        out = Path("output")
-        if not out.exists():
-            out.mkdir()
-        return out
+        self.lang_dir = OUTPUT_DIR / lang
+        if not self.lang_dir.exists():
+            self.lang_dir.mkdir()
 
     def run(self) -> None:
         feed_uri = self.__build_feed_uri()
@@ -50,9 +46,9 @@ class Runner:
 
     def __build_feed_uri(self) -> Union[Path, None]:
         if self.target == "npc":
-            feed_uri = self.output_dir / "{}_npc_data.json".format(self.lang)
+            feed_uri = self.lang_dir / "npc_data.json".format(self.lang)
         elif self.target == "quest":
-            feed_uri = self.output_dir / "{}_quest_data.json".format(self.lang)
+            feed_uri = self.lang_dir / "quest_data.json".format(self.lang)
         else:
             self.logger.error("Unknown target '{}'".format(self.target))
             return None

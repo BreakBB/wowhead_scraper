@@ -1,5 +1,5 @@
-from pathlib import Path
 from typing import List
+from utils import IDS_DIR
 
 
 class Filter:
@@ -13,7 +13,7 @@ class Filter:
     @staticmethod
     def __filter_quest_ids() -> List[int]:
         quest_id_list = []
-        with open(Path(__file__).parent.parent / "ids/questDB.lua", "r", encoding="utf-8") as f:
+        with open(IDS_DIR / "questDB.lua", "r", encoding="utf-8") as f:
             for line in f:
                 if line.startswith("["):
                     quest_id = line[1:line.index("]")]
@@ -23,7 +23,7 @@ class Filter:
     @staticmethod
     def __filter_npc_ids() -> List[int]:
         npc_id_list = []
-        with open(Path(__file__).parent.parent / "ids/spawnDB.lua", "r", encoding="utf-8") as f:
+        with open(IDS_DIR / "spawnDB.lua", "r", encoding="utf-8") as f:
             for line in f:
                 if line.startswith("["):
                     npc_id = line[1:line.index("]")]
@@ -34,14 +34,14 @@ class Filter:
 if __name__ == '__main__':
     fil = Filter()
     npc_ids = fil("npc")
-    with open(Path(__file__).parent.parent / "ids/npcIDs.py", "w", encoding="utf-8") as f:
+    with open(IDS_DIR / "npcIDs.py", "w", encoding="utf-8") as f:
         f.write("NPC_IDS = [\n")
         for qid in npc_ids:
             f.write("  {},\n".format(qid))
         f.write("]\n")
 
     quest_ids = fil("quest")
-    with open(Path(__file__).parent.parent / "ids/questIDs.py", "w", encoding="utf-8") as f:
+    with open(IDS_DIR / "questIDs.py", "w", encoding="utf-8") as f:
         f.write("QUEST_IDS = [\n")
         for qid in quest_ids:
             f.write("  {},\n".format(qid))
