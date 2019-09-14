@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from utils import OUTPUT_DIR
+from utils.paths import OUTPUT_DIR
 
 
 class Formatter:
@@ -109,5 +109,5 @@ class Formatter:
 
 if __name__ == '__main__':
     f = Formatter()
-    f("de", "npc")
-    f("de", "quest")
+    f("pt", "npc")
+    f("pt", "quest")

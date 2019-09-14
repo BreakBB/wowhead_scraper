@@ -1,5 +1,5 @@
 from typing import List
-from utils import IDS_DIR
+from utils.paths import IDS_DIR
 
 
 class Filter:

@@ -6,7 +6,7 @@ from typing import Union
 from scrapy.crawler import CrawlerProcess
 
 from spiders import NPCSpider, QuestSpider
-from utils import OUTPUT_DIR
+from utils.paths import OUTPUT_DIR
 
 
 class Runner:
@@ -21,11 +21,15 @@ class Runner:
         self.lang_dir = OUTPUT_DIR / lang
         if not self.lang_dir.exists():
             self.lang_dir.mkdir()
+        self.lang_dir = self.lang_dir.relative_to(Path(__file__).parent)
 
     def run(self) -> None:
         feed_uri = self.__build_feed_uri()
         if feed_uri is None:
             return None
+        if feed_uri.exists():
+            self.logger.info("Removing existing '{}' file".format(feed_uri))
+            feed_uri.unlink()
 
         process = CrawlerProcess(settings={
             "LOG_LEVEL": "INFO",
@@ -37,6 +41,7 @@ class Runner:
         })
 
         self.logger.info("Starting {} crawler".format(self.target))
+        self.logger.info("Output goes to '{}'".format(feed_uri))
         if self.target == "npc":
             process.crawl(NPCSpider, lang=self.lang)
         elif self.target == "quest":
@@ -46,9 +51,9 @@ class Runner:
 
     def __build_feed_uri(self) -> Union[Path, None]:
         if self.target == "npc":
-            feed_uri = self.lang_dir / "npc_data.json".format(self.lang)
+            feed_uri = self.lang_dir / "npc_data.json"
         elif self.target == "quest":
-            feed_uri = self.lang_dir / "quest_data.json".format(self.lang)
+            feed_uri = self.lang_dir / "quest_data.json"
         else:
             self.logger.error("Unknown target '{}'".format(self.target))
             return None

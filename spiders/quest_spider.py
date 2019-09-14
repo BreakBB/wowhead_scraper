@@ -3,6 +3,7 @@ from scrapy import signals
 from scrapy.shell import inspect_response
 
 from ids import QUEST_IDS
+from utils import Merger
 from utils.formatter import Formatter
 
 from lang_data import get_filter_list_by_lang
@@ -117,3 +118,6 @@ class QuestSpider(scrapy.Spider):
         f(self.lang, "quest")
 
         self.logger.info("Formatting done!")
+        m = Merger(self.lang)
+        m()
+        self.logger.info("Merging done. New lookup file at '{}'".format(m.lang_dir))
