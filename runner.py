@@ -5,7 +5,7 @@ from typing import Union
 
 from scrapy.crawler import CrawlerProcess
 
-from spiders import NPCSpider, QuestSpider
+from spiders import NPCSpider, ObjectSpider, QuestSpider
 from utils.paths import OUTPUT_DIR
 
 
@@ -44,6 +44,8 @@ class Runner:
         self.logger.info("Output goes to '{}'".format(feed_uri))
         if self.target == "npc":
             process.crawl(NPCSpider, lang=self.lang)
+        elif self.target == "object":
+            process.crawl(ObjectSpider, lang=self.lang)
         elif self.target == "quest":
             process.crawl(QuestSpider, lang=self.lang)
 
@@ -52,6 +54,8 @@ class Runner:
     def __build_feed_uri(self) -> Union[Path, None]:
         if self.target == "npc":
             feed_uri = self.lang_dir / "npc_data.json"
+        elif self.target == "object":
+            feed_uri = self.lang_dir / "object_data.json"
         elif self.target == "quest":
             feed_uri = self.lang_dir / "quest_data.json"
         else:
