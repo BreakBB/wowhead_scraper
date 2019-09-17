@@ -1,48 +1,58 @@
-from typing import List
+from pathlib import Path
+from typing import List, Union
 from utils.paths import IDS_DIR
 
 
 class Filter:
 
+    ids = []
+
     def __call__(self, f_type="npc", **kwargs):
         if f_type == "npc":
-            return self.__filter_npc_ids()
+            return self.__filter_ids("spawnDB.lua")
+        elif f_type == "object":
+            return self.__filter_ids("objectDB.lua")
         elif f_type == "quest":
-            return self.__filter_quest_ids()
+            return self.__filter_ids("questDB.lua")
 
-    @staticmethod
-    def __filter_quest_ids() -> List[int]:
-        quest_id_list = []
-        with open(IDS_DIR / "questDB.lua", "r", encoding="utf-8") as f:
+    def __filter_ids(self, target_file: str) -> Union[List[int], None]:
+        path = Path(IDS_DIR / target_file)
+        if not path.exists():
+            return None
+
+        with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 if line.startswith("["):
-                    quest_id = line[1:line.index("]")]
-                    quest_id_list.append(int(quest_id))
-        return quest_id_list
+                    i = line[1:line.index("]")]
+                    self.ids.append(int(i))
+        return self.ids
 
-    @staticmethod
-    def __filter_npc_ids() -> List[int]:
-        npc_id_list = []
-        with open(IDS_DIR / "spawnDB.lua", "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("["):
-                    npc_id = line[1:line.index("]")]
-                    npc_id_list.append(int(npc_id))
-        return npc_id_list
+    def write_to_file(self, table_name: str, target_file: str):
+        with open(IDS_DIR / target_file, "w", encoding="utf-8") as f:
+            f.write(table_name + " = [\n")
+            for nid in self.ids:
+                f.write("  {},\n".format(nid))
+            f.write("]\n")
+        pass
 
 
 if __name__ == '__main__':
     fil = Filter()
+
     npc_ids = fil("npc")
-    with open(IDS_DIR / "npcIDs.py", "w", encoding="utf-8") as f:
-        f.write("NPC_IDS = [\n")
-        for qid in npc_ids:
-            f.write("  {},\n".format(qid))
-        f.write("]\n")
+    if not npc_ids:
+        print("npcDB not found")
+    else:
+        fil.write_to_file("NPC_IDS", "npcIDs.py")
+
+    object_ids = fil("object")
+    if not object_ids:
+        print("objectDB not found")
+    else:
+        fil.write_to_file("OBJECT_IDS", "objectIDs.py")
 
     quest_ids = fil("quest")
-    with open(IDS_DIR / "questIDs.py", "w", encoding="utf-8") as f:
-        f.write("QUEST_IDS = [\n")
-        for qid in quest_ids:
-            f.write("  {},\n".format(qid))
-        f.write("]\n")
+    if not quest_ids:
+        print("questDB not found")
+    else:
+        fil.write_to_file("QUEST_IDS", "questIDs.py")
