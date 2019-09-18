@@ -63,6 +63,8 @@ class NPCSpider(scrapy.Spider):
             name = name[8:]
         elif "(Old)" in name:
             name = name[:name.index("(Old)")]
+        elif "<" in name:
+            name = name[:name.index("<")]
         elif "(Deprecated in 4.x)" in name:
             name = name[:name.index("(Deprecated in 4.x)")]
 
