@@ -21,7 +21,7 @@ class Runner:
         self.lang_dir = OUTPUT_DIR / lang
         if not self.lang_dir.exists():
             self.lang_dir.mkdir()
-        self.lang_dir = self.lang_dir.relative_to(Path(__file__).parent)
+        self.lang_dir = self.lang_dir.relative_to(os.path.dirname(os.path.realpath(__file__)))
 
     def run(self) -> None:
         feed_uri = self.__build_feed_uri()
