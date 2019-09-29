@@ -20,7 +20,6 @@ class QuestSpider(scrapy.Spider):
         super().__init__(**kwargs)
         self.lang = lang
         self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
-        # self.start_urls = [self.base_url.format(lang, qid) for qid in [6584, 2479, 849]]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
