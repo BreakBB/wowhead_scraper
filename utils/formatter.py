@@ -68,9 +68,10 @@ class Formatter:
                 title = self.__filter_text(item["title"])
                 objective = self.__filter_text(item["objective"])
                 description = self.__filter_text(item["description"])
+                xp = item["xp"]
 
-                g.write("[{id}] = {{{title}, {desc}, {obj}}},\n".format(id=item["id"], title=title,
-                                                                        desc=description, obj=objective))
+                g.write("[{id}] = {{{title}, {desc}, {obj}, {xp}}},\n".format(id=item["id"], title=title,
+                                                                        desc=description, obj=objective, xp=item["xp"]))
 
             g.write("}\n")
 
