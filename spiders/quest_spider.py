@@ -116,6 +116,6 @@ class QuestSpider(scrapy.Spider):
         f(self.lang, "quest")
 
         self.logger.info("Formatting done!")
-        m = Merger(self.lang)
-        m()
-        self.logger.info("Merging done. New lookup file at '{}'".format(m.lang_dir))
+        #m = Merger(self.lang)
+        #m()
+        #self.logger.info("Merging done. New lookup file at '{}'".format(m.lang_dir))
