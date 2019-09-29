@@ -96,7 +96,7 @@ class QuestSpider(scrapy.Spider):
             if "xp" in json_object:
                 xp = json_object["xp"]
             else:
-                xp = None
+                xp = 0
         
         return description, objective, xp
 
