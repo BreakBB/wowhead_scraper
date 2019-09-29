@@ -8,6 +8,8 @@ from utils.formatter import Formatter
 
 from lang_data import get_filter_list_by_lang
 
+import json
+
 
 class QuestSpider(scrapy.Spider):
     name = "quest_scraper"
@@ -37,13 +39,14 @@ class QuestSpider(scrapy.Spider):
 
         title = self.__parse_title(response)
 
-        description, objective = self.__parse_objective_and_description(response)
+        description, objective, xp = self.__parse_objective_and_description(response)
 
         result = {
             "id": int(qid),
             "title": title,
             "objective": objective,
-            "description": description
+            "description": description,
+            "xp": xp
         }
         self.logger.info(result)
 
@@ -73,7 +76,29 @@ class QuestSpider(scrapy.Spider):
         else:
             objective = data_list[0]
             description = data_list[1]
-        return description, objective
+        
+        # Get Javascript junks from page
+        junks = response.xpath('//script[@type="text/javascript"]/text()').extract()
+        # Get the second junk of Javascript code which contains the JSON I'm goint to extract the XP from
+        junk = junks[2]
+        # Split the lines based on '\n' as line endings
+        lines = junk.split('\n')
+        # The second line contains the JSON I need
+        json_line = lines[2]
+        # Generate var for getting the length of line prefix for removal
+        prefix_len = len("$.extend(g_quests[" + (response.url.split("/")[-2][6:]) + "],")
+        # Extract the JSON from the line
+        json_text = json_line[prefix_len:len(json_line) - 2]
+        # Convert json_text to JSON Object
+        json_object = json.loads(json_text)
+        # Retrive the xp from the json
+        if json_object:
+            if "xp" in json_object:
+                xp = json_object["xp"]
+            else:
+                xp = None
+        
+        return description, objective, xp
 
     def __filter_text_snippets(self, text_snippets):
         data_list = []
