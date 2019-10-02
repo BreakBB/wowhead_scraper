@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
@@ -5,7 +6,7 @@ from typing import Union
 
 from scrapy.crawler import CrawlerProcess
 
-from spiders import NPCSpider, ObjectSpider, QuestSpider
+from spiders import NPCSpider, ObjectSpider, QuestSpider, QuestXpSpider
 from utils.paths import OUTPUT_DIR
 
 
@@ -21,7 +22,7 @@ class Runner:
         self.lang_dir = OUTPUT_DIR / lang
         if not self.lang_dir.exists():
             self.lang_dir.mkdir()
-        self.lang_dir = self.lang_dir.relative_to(Path(__file__).parent)
+        self.lang_dir = self.lang_dir.relative_to(os.path.dirname(os.path.realpath(__file__)))
 
     def run(self) -> None:
         feed_uri = self.__build_feed_uri()
@@ -48,6 +49,8 @@ class Runner:
             process.crawl(ObjectSpider, lang=self.lang)
         elif self.target == "quest":
             process.crawl(QuestSpider, lang=self.lang)
+        elif self.target == "xp":
+            process.crawl(QuestXpSpider, lang=self.lang)
 
         process.start()
 
@@ -58,6 +61,8 @@ class Runner:
             feed_uri = self.lang_dir / "object_data.json"
         elif self.target == "quest":
             feed_uri = self.lang_dir / "quest_data.json"
+        elif self.target == "xp":
+            feed_uri = self.lang_dir / "quest_xp_data.json"
         else:
             self.logger.error("Unknown target '{}'".format(self.target))
             return None
