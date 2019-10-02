@@ -21,6 +21,8 @@ class Formatter:
             self.__format_object_names()
         elif f_type == "quest":
             self.__format_quests()
+        elif f_type == "xp":
+            self.__format_quests_xp()
 
     def __format_npc_names(self):
         with Path(self.lang_dir / "npc_data.json").open("r", encoding="utf-8") as f:
@@ -74,14 +76,32 @@ class Formatter:
 
             g.write("}\n")
 
+    def __format_quests_xp(self):
+        with Path(self.lang_dir / "quest_xp_data.json").open("r", encoding="utf-8") as f:
+            quest_xp_input = json.load(f)
+            quest_xp_input.sort(key=lambda k: k["id"])
+        with Path(self.lang_dir / "lookupQuestXp.lua").open("w", encoding="utf-8") as g:
+            table_name = self.__get_table_name("xp")
+            g.write(table_name)
+
+            for item in quest_xp_input:
+                quest_id = item["id"]
+                quest_xp = item["xp"]
+                g.write("[{id}] = {xp},\n".format(id=quest_id, xp=quest_xp))
+
+            g.write("}\n")
+
     def __get_table_name(self, target="npc"):
         lang = self.lang
         if target == "npc":
             table_name = "LangNameLookup['{}'] = {{\n"
         elif target == "object":
             table_name = "\nLangObjectLookup['{}'] = {{\n"
-        else:
+        elif target == "quest":
             table_name = "\nLangQuestLookup['{}'] = {{\n"
+        elif target == 'xp':
+            table_name = "\nLangQuestXpLookup['{}'] = {{\n"
+
         if lang == "en":
             return table_name.format("enUS")
         elif lang == "de":
