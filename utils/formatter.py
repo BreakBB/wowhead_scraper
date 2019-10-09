@@ -13,6 +13,7 @@ class Formatter:
         self.lang = lang
         self.lang_dir = OUTPUT_DIR / lang
         if not self.lang_dir.exists():
+            print("Directory for language '{}' doesn't exist. Creating it...".format(self.lang))
             self.lang_dir.mkdir()
 
         if f_type == "npc":
@@ -23,43 +24,42 @@ class Formatter:
             self.__format_quests()
 
     def __format_npc_names(self):
-        with Path(self.lang_dir / "npc_data.json").open("r", encoding="utf-8") as f:
-            npc_input = json.load(f)
-            npc_input.sort(key=lambda k: int(k["id"]))
+        npc_input = self.__load_json_file("npc_data.json")
         with Path(self.lang_dir / "lookupNpcs.lua").open("w", encoding="utf-8") as g:
             table_name = self.__get_table_name()
-            g.write(table_name)
+            self.__write_id_to_string_table(g, npc_input, table_name)
 
-            for item in npc_input:
-                name = item["name"]
-                name = name.replace("'", "\\'")
-                name = name.replace("\"", "\\\"")
-                g.write("[{}] = \"{}\",\n".format(item["id"], name))
-
-            g.write("}\n")
+    def __write_id_to_string_table(self, g, data, table_name):
+        g.write(table_name)
+        for item in data:
+            name = self.__filter_text(item["name"])
+            g.write("[{}] = {},\n".format(item["id"], name))
+        g.write("}\n")
 
     def __format_object_names(self):
-        with Path(self.lang_dir / "object_data.json").open("r", encoding="utf-8") as f:
-            npc_input = json.load(f)
-            npc_input.sort(key=lambda k: int(k["id"]))
+        object_input = self.__load_json_file("object_data.json")
         with Path(self.lang_dir / "lookupObjects.lua").open("w", encoding="utf-8") as g:
             table_name = self.__get_table_name("object")
             g.write(table_name)
 
-            for item in npc_input:
-                name = item["name"]
-                if name.startswith("["):
+            for item in object_input:
+                name = self.__filter_text(item["name"])
+                if name.startswith("[") or name == "nil":
                     continue
-                name = name.replace("'", "\\'")
-                name = name.replace("\"", "\\\"")
-                g.write("[\"{}\"] = {},\n".format(name, item["id"]))
+                g.write("[{}] = {},\n".format(name, item["id"]))
 
             g.write("}\n")
 
+    def __load_json_file(self, file_name: str):
+        print("Loading '{}'...".format(file_name))
+        with Path(self.lang_dir / file_name).open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            data.sort(key=lambda k: int(k["id"]))
+        print("Data contains {} entries".format(len(data)))
+        return data
+
     def __format_quests(self):
-        with Path(self.lang_dir / "quest_data.json").open("r", encoding="utf-8") as f:
-            quest_input = json.load(f)
-            quest_input.sort(key=lambda k: k["id"])
+        quest_input = self.__load_json_file("quest_data.json")
         with Path(self.lang_dir / "lookupQuests.lua").open("w", encoding="utf-8") as g:
             table_name = self.__get_table_name("quest")
             g.write(table_name)
@@ -79,9 +79,9 @@ class Formatter:
         if target == "npc":
             table_name = "LangNameLookup['{}'] = {{\n"
         elif target == "object":
-            table_name = "\nLangObjectLookup['{}'] = {{\n"
+            table_name = "LangObjectLookup[\"{}\"] = {{\n"
         else:
-            table_name = "\nLangQuestLookup['{}'] = {{\n"
+            table_name = "LangQuestLookup[\"{}\"] = {{\n"
         if lang == "en":
             return table_name.format("enUS")
         elif lang == "de":
@@ -99,19 +99,21 @@ class Formatter:
         else:
             raise ValueError("Language '{}' not supported for formatting!".format(lang))
 
-    @staticmethod
-    def __filter_text(text):
+    def __filter_text(self, text):
         text = text.replace("\\", "")
-        text = text.replace("'", "\\'")
         text = text.replace("\"", "\\\"")
-        if text:
-            text = "'" + text + "'"
-        else:
-            text = "nil"
-        return text
+        if self.lang == "ru":
+            text = text.replace("|3-6(<раса>)", "<раса>")
+            text = text.replace("|3-1(<класс>)", "<класс>")
+            text = text.replace("|3-2(<класс>)", "<класс>")
+            text = text.replace("|3-6(<класс>)", "<класс>")
+
+        if not text:
+            return "nil"
+        return "\"" + text + "\""
 
 
 if __name__ == '__main__':
-    f = Formatter()
-    f("cn", "object")
+    formatter = Formatter()
+    formatter("pt", "quest")
     # f("pt", "quest")
