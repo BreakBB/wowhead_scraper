@@ -5,7 +5,6 @@ from utils.paths import OUTPUT_DIR
 
 
 class Formatter:
-
     lang: str
     lang_dir: Path
 
@@ -16,12 +15,20 @@ class Formatter:
             print("Directory for language '{}' doesn't exist. Creating it...".format(self.lang))
             self.lang_dir.mkdir()
 
-        if f_type == "npc":
+        if f_type == "item":
+            self.__format_item_names()
+        elif f_type == "npc":
             self.__format_npc_names()
-        if f_type == "object":
+        elif f_type == "object":
             self.__format_object_names()
         elif f_type == "quest":
             self.__format_quests()
+
+    def __format_item_names(self):
+        item_input = self.__load_json_file("item_data.json")
+        with Path(self.lang_dir / "lookupItems.lua").open("w", encoding="utf-8") as g:
+            table_name = self.__get_table_name("item")
+            self.__write_id_to_string_table(g, item_input, table_name)
 
     def __format_npc_names(self):
         npc_input = self.__load_json_file("npc_data.json")
@@ -76,8 +83,10 @@ class Formatter:
 
     def __get_table_name(self, target="npc"):
         lang = self.lang
-        if target == "npc":
-            table_name = "LangNameLookup['{}'] = {{\n"
+        if target == "item":
+            table_name = "LangItemLookup[\"{}\"] = {{\n"
+        elif target == "npc":
+            table_name = "LangNameLookup[\"{}\"] = {{\n"
         elif target == "object":
             table_name = "LangObjectLookup[\"{}\"] = {{\n"
         else:
