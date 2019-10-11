@@ -8,7 +8,9 @@ class Filter:
     ids = []
 
     def __call__(self, f_type="npc", **kwargs):
-        if f_type == "npc":
+        if f_type == "item":
+            return self.__filter_ids("itemDB.lua")
+        elif f_type == "npc":
             return self.__filter_ids("spawnDB.lua")
         elif f_type == "object":
             return self.__filter_ids("objectDB.lua")
@@ -39,20 +41,26 @@ class Filter:
 if __name__ == '__main__':
     fil = Filter()
 
-    npc_ids = fil("npc")
-    if not npc_ids:
-        print("npcDB not found")
+    item_ids = fil("item")
+    if not item_ids:
+        print("itemDB not found")
     else:
-        fil.write_to_file("NPC_IDS", "npcIDs.py")
-
-    object_ids = fil("object")
-    if not object_ids:
-        print("objectDB not found")
-    else:
-        fil.write_to_file("OBJECT_IDS", "objectIDs.py")
-
-    quest_ids = fil("quest")
-    if not quest_ids:
-        print("questDB not found")
-    else:
-        fil.write_to_file("QUEST_IDS", "questIDs.py")
+        fil.write_to_file("ITEM_IDS", "itemIDs.py")
+    #
+    # npc_ids = fil("npc")
+    # if not npc_ids:
+    #     print("npcDB not found")
+    # else:
+    #     fil.write_to_file("NPC_IDS", "npcIDs.py")
+    #
+    # object_ids = fil("object")
+    # if not object_ids:
+    #     print("objectDB not found")
+    # else:
+    #     fil.write_to_file("OBJECT_IDS", "objectIDs.py")
+    #
+    # quest_ids = fil("quest")
+    # if not quest_ids:
+    #     print("questDB not found")
+    # else:
+    #     fil.write_to_file("QUEST_IDS", "questIDs.py")

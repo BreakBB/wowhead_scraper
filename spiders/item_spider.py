@@ -4,41 +4,41 @@ import scrapy
 from scrapy import signals, Spider
 from scrapy.shell import inspect_response
 
-from ids import NPC_IDS
+from ids import ITEM_IDS
 from utils.formatter import Formatter
 
 
-class NPCSpider(scrapy.Spider):
+class ItemSpider(scrapy.Spider):
 
-    name = "npc_scraper"
+    name = "item_scraper"
     start_urls = []
     npc_names = []
     lang = ""
-    base_url = "https://{}.classic.wowhead.com/npc={}/"
+    base_url = "https://{}.classic.wowhead.com/item={}/"
 
     def __init__(self, lang="en", **kwargs) -> None:
         super().__init__(**kwargs)
         self.lang = lang
-        self.start_urls = [self.base_url.format(lang, nid) for nid in NPC_IDS]
+        self.start_urls = [self.base_url.format(lang, nid) for nid in ITEM_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs) -> Spider:
-        spider = super(NPCSpider, cls).from_crawler(crawler, *args, **kwargs)
+        spider = super(ItemSpider, cls).from_crawler(crawler, *args, **kwargs)
         crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
         return spider
 
     def parse(self, response) -> Dict[str, Union[int, str]]:
         if "?notFound=" in response.url:
-            npc_id = response.url[response.url.index("?notFound="):]
-            self.logger.warning("NPC with ID '{}' could not be found.".format(npc_id))
+            item_id = response.url[response.url.index("?notFound="):]
+            self.logger.warning("Item with ID '{}' could not be found.".format(item_id))
             return
-        npc_id = response.url.split("/")[-2][4:]
+        item_id = response.url.split("/")[-2][5:]
 
         # inspect_response(response, self)
         name = self.__parse_name(response)
 
         result = {
-            "id": int(npc_id),
+            "id": int(item_id),
             "name": name
         }
         self.logger.info(result)
@@ -49,7 +49,7 @@ class NPCSpider(scrapy.Spider):
         self.logger.info("Spider closed. Starting formatter")
 
         f = Formatter()
-        f(self.lang, "npc")
+        f(self.lang, "item")
 
         self.logger.info("Formatting done!")
 
@@ -63,8 +63,6 @@ class NPCSpider(scrapy.Spider):
             name = name[8:]
         elif "(Old)" in name:
             name = name[:name.index("(Old)")]
-        elif "<" in name:
-            name = name[:name.index("<")]
         elif "(Deprecated in 4.x)" in name:
             name = name[:name.index("(Deprecated in 4.x)")]
 

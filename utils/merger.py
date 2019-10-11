@@ -5,10 +5,12 @@ from utils.paths import OUTPUT_DIR
 
 class Merger:
     lang: str
+    target: str
     lang_dir: Path
 
-    def __init__(self, lang="en"):
+    def __init__(self, lang="en", target="npc"):
         self.lang = lang
+        self.target = target
 
         self.lang_dir = OUTPUT_DIR / lang
         if not self.lang_dir.exists():
@@ -21,36 +23,50 @@ class Merger:
         self.__rename_files(new_file, old_file, temp_file)
 
     def __get_files(self):
-        old_file = self.lang_dir / "lookup_old.lua"
+        old_file = self.lang_dir / "lookup{}_old.lua".format(self.target)
         if not old_file.exists():
             raise ValueError("Could not find old lookup file '{}'".format(old_file))
-        new_file = self.lang_dir / "lookup.lua"
+        new_file = self.lang_dir / "lookup{}.lua".format(self.target)
         if not new_file.exists():
             raise ValueError("Could not find new lookup file '{}'".format(new_file))
-        temp_file = self.lang_dir / "lookup_temp.lua"
+        temp_file = self.lang_dir / "lookup{}_temp.lua".format(self.target)
         return new_file, old_file, temp_file
 
     @staticmethod
     def __copy_lines(new_file, old_file, temp_file):
-        with old_file.open("r", encoding="utf-8") as old, \
-                new_file.open("r", encoding="utf-8") as new, \
-                temp_file.open("w", encoding="utf-8") as tmp:
+        with old_file.open("r", encoding="utf-8") as old:
+            old_lines = old.readlines()
+        with new_file.open("r", encoding="utf-8") as new:
+            new_lines = new.readlines()
 
-            for old_line, new_line in zip(old, new):
+        if len(old_lines) != len(new_lines):
+            raise ValueError("Old ({}) and new ({}) lines doesn't match".format(len(old_lines), len(new_lines)))
+
+        with temp_file.open("w", encoding="utf-8") as tmp:
+            old_counter = 0
+            new_counter = 0
+            for old_line, new_line in zip(old_lines, new_lines):
                 if len(old_line) > len(new_line):
                     tmp.write(old_line)
+                    old_counter += 1
                 else:
                     tmp.write(new_line)
+                    new_counter += 1
+            print("Wrote {} old and {} new lines".format(old_counter, new_counter))
 
     def __rename_files(self, new_file: Path, old_file: Path, temp_file: Path):
-        old_file.unlink()
-        new_file.rename(self.lang_dir / "lookup_old.lua")
-        lookup_path = Path(self.lang_dir / "lookup.lua")
-        if lookup_path.exists():
+        while old_file.exists():
+            old_file.unlink()
+        new_file.rename(self.lang_dir / "lookup{}_old.lua".format(self.target))
+        lookup_path = Path(self.lang_dir / "lookup{}.lua".format(self.target))
+        while lookup_path.exists():
             lookup_path.unlink()
         temp_file.rename(lookup_path)
 
 
 if __name__ == '__main__':
-    m = Merger("pt")
+    m = Merger("de", "Npcs")
     m()
+
+# Useful RegEx to find non escaped backslashes
+# (?<!(\\|{|(", )|\[))"(?!(, ({|"|nil)|}|\]))
