@@ -1,4 +1,5 @@
 import os
+
 from argparse import ArgumentParser
 from logging import getLogger
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import Union
 
 from scrapy.crawler import CrawlerProcess
 
-from spiders import NPCSpider, ObjectSpider, QuestSpider, QuestXpSpider
+from spiders import ItemSpider, NPCSpider, ObjectSpider, QuestSpider, QuestXpSpider
 from utils.paths import OUTPUT_DIR
 
 
