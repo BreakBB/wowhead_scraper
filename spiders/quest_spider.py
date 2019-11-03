@@ -62,6 +62,13 @@ class QuestSpider(scrapy.Spider):
             title = title[13:]
         elif title.startswith("["):
             return ""
+        elif "<NYI>" in title:
+            return ""
+
+        if title.startswith("« "):
+            title = title[1:]
+        if title.endswith(" »"):
+            title = title[:-2]
         return title.strip()
 
     def __parse_objective_and_description(self, response):
@@ -111,13 +118,12 @@ class QuestSpider(scrapy.Spider):
         return text
 
     def spider_closed(self, spider):
-        self.logger.info("Spider closed. Starting formatter...")
+        self.logger.info("Spider closed.")
 
         f = Formatter()
         f(self.lang, "npc")
         f(self.lang, "quest")
-
-        self.logger.info("Formatting done!")
-        m = Merger(self.lang)
-        m()
-        self.logger.info("Merging done. New lookup file at '{}'".format(m.lang_dir))
+        #
+        # m = Merger(self.lang, "Quests")
+        # m()
+        # self.logger.info("New lookup file at '{}'".format(m.lang_dir))

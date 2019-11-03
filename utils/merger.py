@@ -8,7 +8,7 @@ class Merger:
     target: str
     lang_dir: Path
 
-    def __init__(self, lang="en", target="npc"):
+    def __init__(self, lang="en", target="Npcs"):
         self.lang = lang
         self.target = target
 
@@ -17,10 +17,12 @@ class Merger:
             self.lang_dir.mkdir()
 
     def __call__(self):
+        print("Starting Merger...")
         new_file, old_file, temp_file = self.__get_files()
 
         self.__copy_lines(new_file, old_file, temp_file)
         self.__rename_files(new_file, old_file, temp_file)
+        print("Merging done!")
 
     def __get_files(self):
         old_file = self.lang_dir / "lookup{}_old.lua".format(self.target)
@@ -65,7 +67,7 @@ class Merger:
 
 
 if __name__ == '__main__':
-    m = Merger("de", "Npcs")
+    m = Merger("de", "Quests")
     m()
 
 # Useful RegEx to find non escaped backslashes

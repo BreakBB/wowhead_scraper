@@ -9,6 +9,7 @@ class Formatter:
     lang_dir: Path
 
     def __call__(self, lang="en", f_type="npc", **kwargs):
+        print("Starting Formatter...")
         self.lang = lang
         self.lang_dir = OUTPUT_DIR / lang
         if not self.lang_dir.exists():
@@ -25,6 +26,8 @@ class Formatter:
             self.__format_quests()
         elif f_type == "xp":
             self.__format_quests_xp()
+
+        print("Formatting done!")
 
     def __format_item_names(self):
         item_input = self.__load_json_file("item_data.json")
@@ -100,16 +103,17 @@ class Formatter:
 
     def __get_table_name(self, target="npc"):
         lang = self.lang
+        table_name = ""
         if target == "item":
             table_name = "LangItemLookup[\"{}\"] = {{\n"
         elif target == "npc":
             table_name = "LangNameLookup[\"{}\"] = {{\n"
         elif target == "object":
-            table_name = "\nLangObjectLookup['{}'] = {{\n"
+            table_name = "LangObjectLookup[\"{}\"] = {{\n"
         elif target == "quest":
-            table_name = "\nLangQuestLookup['{}'] = {{\n"
+            table_name = "LangQuestLookup[\"{}\"] = {{\n"
         elif target == 'xp':
-            table_name = "\nLangQuestXpLookup['{}'] = {{\n"
+            table_name = "LangQuestXpLookup[\"{}\"] = {{\n"
 
         if lang == "en":
             return table_name.format("enUS")
@@ -144,5 +148,5 @@ class Formatter:
 
 if __name__ == '__main__':
     formatter = Formatter()
-    formatter("pt", "quest")
+    formatter("ru", "quest")
     # f("pt", "quest")
