@@ -37,6 +37,9 @@ class ItemSpider(scrapy.Spider):
         # inspect_response(response, self)
         name = self.__parse_name(response)
 
+        if not name:
+            return
+
         result = {
             "id": int(item_id),
             "name": name
@@ -61,6 +64,8 @@ class ItemSpider(scrapy.Spider):
             name = name[20:]
         elif name.startswith("[UNUSED]"):
             name = name[8:]
+        elif name.startswith("["):
+            return ""
         elif "(Old)" in name:
             name = name[:name.index("(Old)")]
         elif "(Deprecated in 4.x)" in name:
