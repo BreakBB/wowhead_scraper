@@ -56,9 +56,7 @@ class Formatter:
 
             for item in object_input:
                 name = self.__filter_text(item["name"])
-                if name.startswith("[") or name == "nil":
-                    continue
-                g.write("[{}] = {},\n".format(name, item["id"]))
+                g.write("[{}] = {},\n".format(item["id"], name))
 
             g.write("}\n")
 
@@ -148,5 +146,5 @@ class Formatter:
 
 if __name__ == '__main__':
     formatter = Formatter()
-    formatter("ru", "quest")
+    formatter("cn", "object")
     # f("pt", "quest")
