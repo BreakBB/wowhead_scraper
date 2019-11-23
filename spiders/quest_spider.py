@@ -87,14 +87,14 @@ class QuestSpider(scrapy.Spider):
         data_list = []
         for t in text_snippets:
             t = self.__filter_text(t)
-            if not t.strip():
+            if not t.strip():  # Lines just containing whitespaces/linebreaks
                 continue
-            if t.startswith("\n") or not data_list:
+            if t.startswith("\n") or not data_list:  # Every new text part starts with a \n (objective/description,etc)
                 t = t.replace("\n", "")
-                data_list.append(t.strip())
+                data_list.append([t.strip()])  # Make it a list of strings
             else:
                 t = t.replace("\n", "")
-                data_list[-1] = data_list[-1] + " " + t.strip()
+                data_list[-1].append(t.strip())  # Append to the existing list
         return list(filter(None, data_list))
 
     def __filter_text(self, text: str) -> str:
@@ -121,9 +121,8 @@ class QuestSpider(scrapy.Spider):
         self.logger.info("Spider closed.")
 
         f = Formatter()
-        f(self.lang, "npc")
         f(self.lang, "quest")
-        #
-        # m = Merger(self.lang, "Quests")
-        # m()
-        # self.logger.info("New lookup file at '{}'".format(m.lang_dir))
+
+        m = Merger(self.lang, "Quests")
+        m()
+        self.logger.info("New lookup file at '{}'".format(m.lang_dir))

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from utils.paths import OUTPUT_DIR
+from shutil import copyfile
 
 
 class Merger:
@@ -34,8 +35,7 @@ class Merger:
         temp_file = self.lang_dir / "lookup{}_temp.lua".format(self.target)
         return new_file, old_file, temp_file
 
-    @staticmethod
-    def __copy_lines(new_file, old_file, temp_file):
+    def __copy_lines(self, new_file, old_file, temp_file):
         with old_file.open("r", encoding="utf-8") as old:
             old_lines = old.readlines()
         with new_file.open("r", encoding="utf-8") as new:
@@ -49,21 +49,32 @@ class Merger:
             new_counter = 0
             for old_line, new_line in zip(old_lines, new_lines):
                 if len(old_line) > len(new_line):
-                    tmp.write(old_line)
+                    self.__write_splits(old_line, tmp)
                     old_counter += 1
                 else:
-                    tmp.write(new_line)
+                    self.__write_splits(new_line, tmp)
                     new_counter += 1
             print("Wrote {} old and {} new lines".format(old_counter, new_counter))
+
+    @staticmethod
+    def __write_splits(line, tmp):
+        splits = line.split("\", \"")
+        if len(splits) > 2:
+            tmp.write(splits[0] + "\", ")
+            tmp.write("{\"" + splits[1] + "\"}, ")
+            tmp.write("{\"" + splits[2][:-2] + "},\n")
+        else:
+            tmp.write(line)
 
     def __rename_files(self, new_file: Path, old_file: Path, temp_file: Path):
         while old_file.exists():
             old_file.unlink()
-        new_file.rename(self.lang_dir / "lookup{}_old.lua".format(self.target))
+        new_file.rename(self.lang_dir / "lookup{}_previous.lua".format(self.target))
         lookup_path = Path(self.lang_dir / "lookup{}.lua".format(self.target))
         while lookup_path.exists():
             lookup_path.unlink()
         temp_file.rename(lookup_path)
+        copyfile(str(lookup_path), self.lang_dir / "lookup{}_old.lua".format(self.target))
 
 
 if __name__ == '__main__':

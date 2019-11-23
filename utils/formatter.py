@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import TextIO, List
 
 from utils.paths import OUTPUT_DIR
 
@@ -68,7 +69,7 @@ class Formatter:
         print("Data contains {} entries".format(len(data)))
         return data
 
-    def __format_quests(self):
+    def __format_quests(self) -> None:
         quest_input = self.__load_json_file("quest_data.json")
         with Path(self.lang_dir / "lookupQuests.lua").open("w", encoding="utf-8") as g:
             table_name = self.__get_table_name("quest")
@@ -76,15 +77,17 @@ class Formatter:
 
             for item in quest_input:
                 title = self.__filter_text(item["title"])
-                objective = self.__filter_text(item["objective"])
-                description = self.__filter_text(item["description"])
+                objective = self.__filter_list(item["objective"])
+                description = self.__filter_list(item["description"])
 
-                g.write("[{id}] = {{{title}, {desc}, {obj}}},\n".format(id=item["id"], title=title,
-                                                                        desc=description, obj=objective))
-
+                g.write("[{id}] = {{{title},".format(id=item["id"], title=title))
+                self.__write_list(description, g)
+                g.write(",")
+                self.__write_list(objective, g)
+                g.write("},\n")
             g.write("}\n")
 
-    def __format_quests_xp(self):
+    def __format_quests_xp(self) -> None:
         with Path(self.lang_dir / "quest_xp_data.json").open("r", encoding="utf-8") as f:
             quest_xp_input = json.load(f)
             quest_xp_input.sort(key=lambda k: k["id"])
@@ -99,7 +102,7 @@ class Formatter:
 
             g.write("}\n")
 
-    def __get_table_name(self, target="npc"):
+    def __get_table_name(self, target: str = "npc") -> str:
         lang = self.lang
         table_name = ""
         if target == "item":
@@ -130,7 +133,7 @@ class Formatter:
         else:
             raise ValueError("Language '{}' not supported for formatting!".format(lang))
 
-    def __filter_text(self, text):
+    def __filter_text(self, text: str) -> str:
         text = text.replace("\\", "")
         text = text.replace("\"", "\\\"")
         if self.lang == "ru":
@@ -143,8 +146,27 @@ class Formatter:
             return "nil"
         return "\"" + text + "\""
 
+    def __filter_list(self, text_list: List[str]) -> List[str]:
+        ret_list = []
+        for text in text_list:
+            ret_list.append(self.__filter_text(text))
+        return ret_list
+
+    @staticmethod
+    def __write_list(sentences: List[str], g: TextIO) -> None:
+        if (not sentences) or (sentences[0] == "nil"):
+            g.write(" nil")
+            return
+
+        g.write(" {")
+        for i, s in enumerate(sentences):
+            if i == (len(sentences) - 1):  # The last sentence should be added without ","
+                g.write("{desc}".format(desc=s))
+            else:
+                g.write("{desc},".format(desc=s))
+        g.write("}")
+
 
 if __name__ == '__main__':
     formatter = Formatter()
-    formatter("cn", "object")
-    # f("pt", "quest")
+    formatter("de", "quest")
