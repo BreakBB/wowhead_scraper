@@ -69,7 +69,10 @@ class Merger:
     def __rename_files(self, new_file: Path, old_file: Path, temp_file: Path):
         while old_file.exists():
             old_file.unlink()
-        new_file.rename(self.lang_dir / "lookup{}_previous.lua".format(self.target))
+        previous_path = self.lang_dir / "lookup{}_previous.lua".format(self.target)
+        while previous_path.exists():
+            previous_path.unlink()
+        new_file.rename(previous_path)
         lookup_path = Path(self.lang_dir / "lookup{}.lua".format(self.target))
         while lookup_path.exists():
             lookup_path.unlink()
