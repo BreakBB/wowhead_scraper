@@ -16,10 +16,18 @@ class NPCSpider(scrapy.Spider):
     lang = ""
     base_url = "https://{}.classic.wowhead.com/npc={}/"
 
+    xpath_name = "//h1[@class='heading-size-1']//text()"
+
     def __init__(self, lang="en", **kwargs) -> None:
         super().__init__(**kwargs)
         self.lang = lang
-        self.start_urls = [self.base_url.format(lang, nid) for nid in NPC_IDS]
+        if lang == "mx":
+            self.base_url = "https://db.wowlatinoamerica.com/?npc={}"
+            self.start_urls = [self.base_url.format(nid) for nid in NPC_IDS]
+            # self.start_urls = [self.base_url.format(qid) for qid in [7]]
+            self.xpath_name = "//div[@class='text']/h1/text()"
+        else:
+            self.start_urls = [self.base_url.format(lang, nid) for nid in NPC_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs) -> Spider:
@@ -32,18 +40,22 @@ class NPCSpider(scrapy.Spider):
             npc_id = response.url[response.url.index("?notFound="):]
             self.logger.warning("NPC with ID '{}' could not be found.".format(npc_id))
             return
-        npc_id = response.url.split("/")[-2][4:]
+        if self.lang == "mx":
+            npc_id = response.url.split("/")[-1][5:]  # It is /?npc=
+        else:
+            npc_id = response.url.split("/")[-2][4:]
 
         # inspect_response(response, self)
         name = self.__parse_name(response)
 
-        result = {
-            "id": int(npc_id),
-            "name": name
-        }
-        self.logger.info(result)
+        if name:
+            result = {
+                "id": int(npc_id),
+                "name": name
+            }
+            self.logger.info(result)
 
-        yield result
+            yield result
 
     def spider_closed(self, spider) -> None:
         self.logger.info("Spider closed. Starting formatter")
@@ -53,9 +65,11 @@ class NPCSpider(scrapy.Spider):
 
         self.logger.info("Formatting done!")
 
-    @staticmethod
-    def __parse_name(response) -> str:
-        name = response.xpath("//h1[@class='heading-size-1']//text()").get()
+    def __parse_name(self, response) -> str:
+        name = response.xpath(self.xpath_name).get()
+
+        if not name:
+            return ""
 
         if name.startswith("[Deprecated for 4.x]"):
             name = name[20:]
