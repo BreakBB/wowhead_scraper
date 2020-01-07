@@ -16,10 +16,18 @@ class ObjectSpider(scrapy.Spider):
     lang = ""
     base_url = "https://{}.classic.wowhead.com/object={}/"
 
+    xpath_name = "//h1[@class='heading-size-1']//text()"
+
     def __init__(self, lang="en", **kwargs) -> None:
         super().__init__(**kwargs)
         self.lang = lang
-        self.start_urls = [self.base_url.format(lang, nid) for nid in OBJECT_IDS]
+        if lang == "mx":
+            self.base_url = "https://db.wowlatinoamerica.com/?object={}"
+            self.start_urls = [self.base_url.format(oid) for oid in OBJECT_IDS]
+            # self.start_urls = [self.base_url.format(qid) for qid in [7]]
+            self.xpath_name = "//div[@class='text']/h1/text()"
+        else:
+            self.start_urls = [self.base_url.format(lang, oid) for oid in OBJECT_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs) -> Spider:
@@ -32,7 +40,10 @@ class ObjectSpider(scrapy.Spider):
             obj_id = response.url[response.url.index("?notFound="):]
             self.logger.warning("Object with ID '{}' could not be found.".format(obj_id))
             return
-        obj_id = response.url.split("/")[-2][7:]
+        if self.lang == "mx":
+            obj_id = response.url.split("/")[-1][8:]  # It is /?object=
+        else:
+            obj_id = response.url.split("/")[-2][7:]
 
         # inspect_response(response, self)
         name = self.__parse_name(response)
@@ -56,9 +67,8 @@ class ObjectSpider(scrapy.Spider):
 
         self.logger.info("Formatting done!")
 
-    @staticmethod
-    def __parse_name(response) -> str:
-        name = response.xpath("//h1[@class='heading-size-1']//text()").get()
+    def __parse_name(self, response) -> str:
+        name = response.xpath(self.xpath_name).get()
 
         if name.startswith("[Deprecated for 4.x]"):
             name = name[20:]
