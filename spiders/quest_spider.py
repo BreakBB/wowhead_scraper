@@ -16,10 +16,21 @@ class QuestSpider(scrapy.Spider):
     lang = ""
     base_url = "https://{}.classic.wowhead.com/quest={}/"
 
+    xpath_title = "//div[@class='text']/h1[@class='heading-size-1']/text()"
+    xpath_objective_and_description = "//div[@class='block-block-bg is-btf']//following-sibling::text()"
+
     def __init__(self, lang="en", **kwargs):
         super().__init__(**kwargs)
         self.lang = lang
-        self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
+        if lang == "mx":
+            self.base_url = "https://db.wowlatinoamerica.com/?quest={}"
+            self.start_urls = [self.base_url.format(qid) for qid in QUEST_IDS]
+            # self.start_urls = [self.base_url.format(qid) for qid in [7]]
+            self.xpath_title = "//div[@class='text']/h1/text()"
+            self.xpath_objective_and_description = "//div[@class='text']/h1//following-sibling::text()"
+        else:
+            self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
+
         # self.start_urls = [self.base_url.format(lang, qid) for qid in [6584, 2479, 849]]
 
     @classmethod
@@ -33,7 +44,10 @@ class QuestSpider(scrapy.Spider):
             qid = response.url[response.url.index("?notFound=") + 10:]
             self.logger.warning("Quest with ID '{}' could not be found.".format(qid))
             return
-        qid = response.url.split("/")[-2][6:]
+        if self.lang == "mx":
+            qid = response.url.split("/")[-1][7:]  # It is /?quest=
+        else:
+            qid = response.url.split("/")[-2][6:]
         # inspect_response(response, self)
 
         title = self.__parse_title(response)
@@ -51,7 +65,7 @@ class QuestSpider(scrapy.Spider):
         yield result
 
     def __parse_title(self, response) -> str:
-        title: str = response.xpath("//div[@class='text']/h1[@class='heading-size-1']/text()").get()
+        title: str = response.xpath(self.xpath_title).get()
 
         title = self.__filter_title(title)
         return title
@@ -72,7 +86,7 @@ class QuestSpider(scrapy.Spider):
         return title.strip()
 
     def __parse_objective_and_description(self, response):
-        text_snippets = response.xpath("//div[@class='block-block-bg is-btf']//following-sibling::text()").extract()
+        text_snippets = response.xpath(self.xpath_objective_and_description).extract()
         data_list = self.__filter_text_snippets(text_snippets)
         if len(data_list) < 2:
             self.logger.warning("Wrong structured HTML for {}".format(response.url))

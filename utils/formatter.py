@@ -124,6 +124,8 @@ class Formatter:
             return table_name.format("frFR")
         elif lang == "es":
             return table_name.format("esES")
+        elif lang == "mx":
+            return table_name.format("esMX")
         elif lang == "ru":
             return table_name.format("ruRU")
         elif lang == "cn":
@@ -169,4 +171,4 @@ class Formatter:
 
 if __name__ == '__main__':
     formatter = Formatter()
-    formatter("de", "quest")
+    formatter("mx", "quest")

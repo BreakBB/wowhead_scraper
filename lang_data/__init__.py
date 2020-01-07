@@ -4,6 +4,7 @@ from .en import FILTERS as EN_FILTERS
 from .de import FILTERS as DE_FILTERS
 from .fr import FILTERS as FR_FILTERS
 from .es import FILTERS as ES_FILTERS
+from .mx import FILTERS as MX_FILTERS
 from .ru import FILTERS as RU_FILTERS
 from .cn import FILTERS as CN_FILTERS
 from .pt import FILTERS as PT_FILTERS
@@ -18,6 +19,8 @@ def get_filter_list_by_lang(lang: str) -> List[str]:
         return FR_FILTERS
     elif lang == "es":
         return ES_FILTERS
+    elif lang == "mx":
+        return MX_FILTERS
     elif lang == "ru":
         return RU_FILTERS
     elif lang == "cn":
