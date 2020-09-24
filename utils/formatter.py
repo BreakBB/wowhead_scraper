@@ -40,7 +40,12 @@ class Formatter:
         npc_input = self.__load_json_file("npc_data.json")
         with Path(self.lang_dir / "lookupNpcs.lua").open("w", encoding="utf-8") as g:
             table_name = self.__get_table_name()
-            self.__write_id_to_string_table(g, npc_input, table_name)
+            g.write(table_name)
+            for item in npc_input:
+                name = self.__filter_text(item["name"])
+                subname = self.__filter_text(item["subname"])
+                g.write("[{}] = {{{},{}}},\n".format(item["id"], name, subname))
+            g.write("}\n")
 
     def __write_id_to_string_table(self, g, data, table_name):
         g.write(table_name)
@@ -171,4 +176,4 @@ class Formatter:
 
 if __name__ == '__main__':
     formatter = Formatter()
-    formatter("mx", "quest")
+    formatter("de", "npc")

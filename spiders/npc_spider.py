@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union, Dict, Tuple
 
 import scrapy
 from scrapy import signals, Spider
@@ -46,12 +46,13 @@ class NPCSpider(scrapy.Spider):
             npc_id = response.url.split("/")[-2][4:]
 
         # inspect_response(response, self)
-        name = self.__parse_name(response)
+        name, subname = self.__parse_name(response)
 
         if name:
             result = {
                 "id": int(npc_id),
-                "name": name
+                "name": name,
+                "subname": subname
             }
             self.logger.info(result)
 
@@ -65,8 +66,9 @@ class NPCSpider(scrapy.Spider):
 
         self.logger.info("Formatting done!")
 
-    def __parse_name(self, response) -> str:
+    def __parse_name(self, response) -> Tuple[str, str]:
         name = response.xpath(self.xpath_name).get()
+        subname = ""
 
         if not name:
             return ""
@@ -78,8 +80,9 @@ class NPCSpider(scrapy.Spider):
         elif "(Old)" in name:
             name = name[:name.index("(Old)")]
         elif "<" in name:
+            subname = name[name.index("<")+1:-1]
             name = name[:name.index("<")]
         elif "(Deprecated in 4.x)" in name:
             name = name[:name.index("(Deprecated in 4.x)")]
 
-        return name.strip()
+        return name.strip(), subname.strip()
