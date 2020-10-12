@@ -8,6 +8,7 @@ from .mx import FILTERS as MX_FILTERS
 from .ru import FILTERS as RU_FILTERS
 from .cn import FILTERS as CN_FILTERS
 from .pt import FILTERS as PT_FILTERS
+from .ko import FILTERS as KO_FILTERS
 
 
 def get_filter_list_by_lang(lang: str) -> List[str]:
@@ -27,5 +28,7 @@ def get_filter_list_by_lang(lang: str) -> List[str]:
         return CN_FILTERS
     elif lang == "pt":
         return PT_FILTERS
+    elif lang == "ko":
+        return KO_FILTERS
     else:
         raise ValueError("Language '{}' not supported".format(lang))

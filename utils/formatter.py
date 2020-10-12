@@ -137,6 +137,8 @@ class Formatter:
             return table_name.format("zhCN")
         elif lang == "pt":
             return table_name.format("ptBR")
+        elif lang == "ko":
+            return table_name.format("koKR")
         else:
             raise ValueError("Language '{}' not supported for formatting!".format(lang))
 
@@ -172,8 +174,3 @@ class Formatter:
             else:
                 g.write("{desc},".format(desc=s))
         g.write("}")
-
-
-if __name__ == '__main__':
-    formatter = Formatter()
-    formatter("de", "npc")
