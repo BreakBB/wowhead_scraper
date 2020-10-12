@@ -25,13 +25,12 @@ class QuestSpider(scrapy.Spider):
         if lang == "mx":
             self.base_url = "https://db.wowlatinoamerica.com/?quest={}"
             self.start_urls = [self.base_url.format(qid) for qid in QUEST_IDS]
-            # self.start_urls = [self.base_url.format(qid) for qid in [7]]
             self.xpath_title = "//div[@class='text']/h1/text()"
             self.xpath_objective_and_description = "//div[@class='text']/h1//following-sibling::text()"
         else:
             self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
 
-        # self.start_urls = [self.base_url.format(lang, qid) for qid in [6584, 2479, 849]]
+        # self.start_urls = [self.base_url.format(lang, qid) for qid in [8]]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -60,7 +59,7 @@ class QuestSpider(scrapy.Spider):
             "objective": objective,
             "description": description
         }
-        self.logger.info(result)
+        # self.logger.info(result)
 
         yield result
 
@@ -99,14 +98,18 @@ class QuestSpider(scrapy.Spider):
 
     def __filter_text_snippets(self, text_snippets):
         data_list = []
+        lastTextSegment = False  # This is True if the segment is the last of the current category
         for t in text_snippets:
             t = self.__filter_text(t)
-            if not t.strip():  # Lines just containing whitespaces/linebreaks
+            if not t.strip():  # Segment just contains whitespaces/linebreaks
                 continue
-            if t.startswith("\n") or not data_list:  # Every new text part starts with a \n (objective/description,etc)
+
+            if lastTextSegment or not data_list:  # The previous segment was the last of a category (objective/description)
+                lastTextSegment = t.endswith("\n")
                 t = t.replace("\n", "")
-                data_list.append([t.strip()])  # Make it a list of strings
+                data_list.append([t.strip()])
             else:
+                lastTextSegment = t.endswith("\n")
                 t = t.replace("\n", "")
                 data_list[-1].append(t.strip())  # Append to the existing list
         return list(filter(None, data_list))
