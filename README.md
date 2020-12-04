@@ -1,6 +1,6 @@
 # Wowhead Scraper
 
-This project targets to scrape the [Wowhead](https://classic.wowhead.com) website and extract information about NPCs and quests. These information are used for localization of the [Questie Addon](https://github.com/AeroScripts/QuestieDev/).
+This project targets to scrape the [Wowhead](https://classic.wowhead.com) website and extract information about NPCs, quests, items, objects and experience points (XP). These information are primarily used for localization of the [Questie Addon](https://github.com/AeroScripts/QuestieDev/).
 
 ## How to use
 
