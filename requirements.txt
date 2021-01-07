@@ -14,7 +14,7 @@ itemadapter==0.1.0
 itemloaders==1.0.3
 jmespath==0.10.0
 lazy-object-proxy==1.4.3
-lxml==4.5.2
+lxml==4.6.2
 mccabe==0.6.1
 parsel==1.6.0
 Protego==0.1.16
