@@ -7,38 +7,42 @@ from utils.paths import OUTPUT_DIR
 
 class Formatter:
     lang: str
-    lang_dir: Path
+    target_dir: Path
 
     def __call__(self, lang="en", f_type="npc", **kwargs):
         print("Starting Formatter...")
         self.lang = lang
-        self.lang_dir = OUTPUT_DIR / lang
-        if not self.lang_dir.exists():
-            print("Directory for language '{}' doesn't exist. Creating it...".format(self.lang))
-            self.lang_dir.mkdir()
+        self.target_dir = OUTPUT_DIR / f_type
+        if not self.target_dir.exists():
+            print("Directory '{}' doesn't exist. Creating it...".format(self.target_dir))
+            self.target_dir.mkdir()
 
         if f_type == "item":
-            self.__format_item_names()
+            self.__format_item_names(lang)
         elif f_type == "npc":
-            self.__format_npc_names()
+            self.__format_npc_names(lang)
         elif f_type == "object":
-            self.__format_object_names()
+            self.__format_object_names(lang)
         elif f_type == "quest":
-            self.__format_quests()
+            self.__format_quests(lang)
         elif f_type == "xp":
-            self.__format_quests_xp()
+            self.__format_quests_xp(lang)
 
         print("Formatting done!")
 
-    def __format_item_names(self):
-        item_input = self.__load_json_file("item_data.json")
-        with Path(self.lang_dir / "lookupItems.lua").open("w", encoding="utf-8") as g:
+    def __format_item_names(self, lang):
+        item_input = self.__load_json_file(lang + "_data.json")
+        lang = self.__get_lang_code()
+        with Path(self.target_dir / (lang + ".lua")).open("w", encoding="utf-8") as g:
+            self.__write_lua_file_header(g)
             table_name = self.__get_table_name("item")
             self.__write_id_to_string_table(g, item_input, table_name)
 
-    def __format_npc_names(self):
-        npc_input = self.__load_json_file("npc_data.json")
-        with Path(self.lang_dir / "lookupNpcs.lua").open("w", encoding="utf-8") as g:
+    def __format_npc_names(self, lang):
+        npc_input = self.__load_json_file(lang + "_data.json")
+        lang = self.__get_lang_code()
+        with Path(self.target_dir / (lang + ".lua")).open("w", encoding="utf-8") as g:
+            self.__write_lua_file_header(g)
             table_name = self.__get_table_name()
             g.write(table_name)
             for item in npc_input:
@@ -54,9 +58,11 @@ class Formatter:
             g.write("[{}] = {},\n".format(item["id"], name))
         g.write("}\n")
 
-    def __format_object_names(self):
-        object_input = self.__load_json_file("object_data.json")
-        with Path(self.lang_dir / "lookupObjects.lua").open("w", encoding="utf-8") as g:
+    def __format_object_names(self, lang):
+        object_input = self.__load_json_file(lang + "_data.json")
+        lang = self.__get_lang_code()
+        with Path(self.target_dir / (lang + ".lua")).open("w", encoding="utf-8") as g:
+            self.__write_lua_file_header(g)
             table_name = self.__get_table_name("object")
             g.write(table_name)
 
@@ -68,15 +74,17 @@ class Formatter:
 
     def __load_json_file(self, file_name: str):
         print("Loading '{}'...".format(file_name))
-        with Path(self.lang_dir / file_name).open("r", encoding="utf-8") as f:
+        with Path(self.target_dir / file_name).open("r", encoding="utf-8") as f:
             data = json.load(f)
             data.sort(key=lambda k: int(k["id"]))
         print("Data contains {} entries".format(len(data)))
         return data
 
-    def __format_quests(self) -> None:
-        quest_input = self.__load_json_file("quest_data.json")
-        with Path(self.lang_dir / "lookupQuests.lua").open("w", encoding="utf-8") as g:
+    def __format_quests(self, lang) -> None:
+        quest_input = self.__load_json_file(lang + "_data.json")
+        lang = self.__get_lang_code()
+        with Path(self.target_dir / (lang + ".lua")).open("w", encoding="utf-8") as g:
+            self.__write_lua_file_header(g)
             table_name = self.__get_table_name("quest")
             g.write(table_name)
 
@@ -92,11 +100,19 @@ class Formatter:
                 g.write("},\n")
             g.write("}\n")
 
-    def __format_quests_xp(self) -> None:
-        with Path(self.lang_dir / "quest_xp_data.json").open("r", encoding="utf-8") as f:
+    def __write_lua_file_header(self, g: TextIO) -> None:
+        g.write('if GetLocale() ~= "{}" then\n'.format(self.__get_lang_code()))
+        g.write('    return\n')
+        g.write('end\n\n')
+        g.write('---@type l10n\n')
+        g.write('local l10n = QuestieLoader:ImportModule("l10n")\n\n')
+
+    def __format_quests_xp(self, lang) -> None:
+        with Path(self.target_dir / lang + "_xp_data.json").open("r", encoding="utf-8") as f:
             quest_xp_input = json.load(f)
             quest_xp_input.sort(key=lambda k: k["id"])
-        with Path(self.lang_dir / "lookupQuestXp.lua").open("w", encoding="utf-8") as g:
+        lang = self.__get_lang_code()
+        with Path(self.target_dir / (lang + ".lua")).open("w", encoding="utf-8") as g:
             table_name = self.__get_table_name("xp")
             g.write(table_name)
 
@@ -111,36 +127,17 @@ class Formatter:
         lang = self.lang
         table_name = ""
         if target == "item":
-            table_name = "LangItemLookup[\"{}\"] = {{\n"
+            table_name = "l10n.itemLookup[\"{}\"] = {{\n"
         elif target == "npc":
-            table_name = "LangNameLookup[\"{}\"] = {{\n"
+            table_name = "l10n.npcNameLookup[\"{}\"] = {{\n"
         elif target == "object":
-            table_name = "LangObjectLookup[\"{}\"] = {{\n"
+            table_name = "l10n.objectLookup[\"{}\"] = {{\n"
         elif target == "quest":
-            table_name = "LangQuestLookup[\"{}\"] = {{\n"
+            table_name = "l10n.questLookup[\"{}\"] = {{\n"
         elif target == 'xp':
-            table_name = "LangQuestXpLookup[\"{}\"] = {{\n"
+            table_name = "l10n.xpLookup[\"{}\"] = {{\n"
 
-        if lang == "en":
-            return table_name.format("enUS")
-        elif lang == "de":
-            return table_name.format("deDE")
-        elif lang == "fr":
-            return table_name.format("frFR")
-        elif lang == "es":
-            return table_name.format("esES")
-        elif lang == "mx":
-            return table_name.format("esMX")
-        elif lang == "ru":
-            return table_name.format("ruRU")
-        elif lang == "cn":
-            return table_name.format("zhCN")
-        elif lang == "pt":
-            return table_name.format("ptBR")
-        elif lang == "ko":
-            return table_name.format("koKR")
-        else:
-            raise ValueError("Language '{}' not supported for formatting!".format(lang))
+        return table_name.format(self.__get_lang_code())
 
     def __filter_text(self, text: str) -> str:
         text = text.replace("\\", "")
@@ -174,3 +171,30 @@ class Formatter:
             else:
                 g.write("{desc},".format(desc=s))
         g.write("}")
+
+    def __get_lang_code(self) -> str:
+        if self.lang == "en":
+            return "enUS"
+        elif self.lang == "de":
+            return "deDE"
+        elif self.lang == "fr":
+            return "frFR"
+        elif self.lang == "es":
+            return "esES"
+        elif self.lang == "mx":
+            return "esMX"
+        elif self.lang == "ru":
+            return "ruRU"
+        elif self.lang == "cn":
+            return "zhCN"
+        elif self.lang == "pt":
+            return "ptBR"
+        elif self.lang == "ko":
+            return "koKR"
+        else:
+            raise ValueError("Language '{}' not supported for formatting!".format(self.lang))
+
+
+if __name__ == '__main__':
+    f = Formatter()
+    f("de", "quest")
