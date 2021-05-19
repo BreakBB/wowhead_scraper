@@ -49,6 +49,7 @@ class QuestSpider(scrapy.Spider):
         if "?notFound=" in response.url:
             qid = response.url[response.url.index("?notFound=") + 10:]
             self.logger.warning("Quest with ID '{}' could not be found.".format(qid))
+            self.__retry_on_retail(response, qid)
             return
         if self.lang == "mx":
             qid = response.url.split("/")[-1][7:]  # It is /?quest=
@@ -60,10 +61,8 @@ class QuestSpider(scrapy.Spider):
 
         description, objective = self.__parse_objective_and_description(response)
 
-        if (description == "" or objective == "") and self.version == "tbc" and response.url.startswith("https://{}.tbc".format(self.lang)):
-            print("Retrying Retail url for", qid)
-            yield response.follow(self.base_url_retail.format(self.lang, qid), self.parse)
-            return
+        if (description == "" or objective == ""):
+            self.__retry_on_retail(response, qid)
 
         result = {
             "id": int(qid),
@@ -74,6 +73,11 @@ class QuestSpider(scrapy.Spider):
         # self.logger.info(result)
 
         yield result
+
+    def __retry_on_retail(self, response, qid):
+        if self.version == "tbc" and response.url.startswith("https://{}.tbc".format(self.lang)):
+            print("Retrying Retail url for", qid)
+            yield response.follow(self.base_url_retail.format(self.lang, qid), self.parse)
 
     def __parse_title(self, response) -> str:
         title: str = response.xpath(self.xpath_title).get()
@@ -152,6 +156,6 @@ class QuestSpider(scrapy.Spider):
         f = Formatter()
         f(self.lang, "quest")
 
-        m = Merger(self.lang, "Quests")
-        m()
-        self.logger.info("New lookup file at '{}'".format(m.lang_dir))
+        # m = Merger(self.lang, "Quests")
+        # m()
+        # self.logger.info("New lookup file at '{}'".format(m.target_dir))
