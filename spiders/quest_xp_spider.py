@@ -12,12 +12,12 @@ class QuestXpSpider(scrapy.Spider):
     start_urls = []
     quest_data = []
     lang = ""
-    base_url = "https://{}.classic.wowhead.com/quest={}/"
+    base_url = "https://{}.{}.wowhead.com/quest={}/"
 
-    def __init__(self, lang="en", **kwargs):
+    def __init__(self, lang, version, **kwargs):
         super().__init__(**kwargs)
         self.lang = lang
-        self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
+        self.start_urls = [self.base_url.format(lang, version, qid) for qid in QUEST_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):

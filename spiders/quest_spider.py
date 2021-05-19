@@ -14,23 +14,30 @@ class QuestSpider(scrapy.Spider):
     start_urls = []
     quest_data = []
     lang = ""
-    base_url = "https://{}.classic.wowhead.com/quest={}/"
+    version = ""
+    base_url_retail = "https://{}.wowhead.com/quest={}/"
+    base_url_tbc = "https://{}.tbc.wowhead.com/quest={}/"
+    base_url_classic = "https://{}.classic.wowhead.com/quest={}/"
 
     xpath_title = "//div[@class='text']/h1[@class='heading-size-1']/text()"
     xpath_objective_and_description = "//div[@class='block-block-bg is-btf']//following-sibling::text()"
 
-    def __init__(self, lang="en", **kwargs):
+    def __init__(self, lang, version, **kwargs):
         super().__init__(**kwargs)
         self.lang = lang
+        self.version = version
+
+        base_url = self.base_url_classic
+        if version == "tbc":
+            base_url = self.base_url_tbc
+
         if lang == "mx":
-            self.base_url = "https://db.wowlatinoamerica.com/?quest={}"
-            self.start_urls = [self.base_url.format(qid) for qid in QUEST_IDS]
+            base_url = "https://db.wowlatinoamerica.com/?quest={}"
+            self.start_urls = [base_url.format(qid) for qid in QUEST_IDS]
             self.xpath_title = "//div[@class='text']/h1/text()"
             self.xpath_objective_and_description = "//div[@class='text']/h1//following-sibling::text()"
         else:
-            self.start_urls = [self.base_url.format(lang, qid) for qid in QUEST_IDS]
-
-        # self.start_urls = [self.base_url.format(lang, qid) for qid in [8]]
+            self.start_urls = [base_url.format(lang, qid) for qid in QUEST_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -52,6 +59,11 @@ class QuestSpider(scrapy.Spider):
         title = self.__parse_title(response)
 
         description, objective = self.__parse_objective_and_description(response)
+
+        if (description == "" or objective == "") and self.version == "tbc" and response.url.startswith("https://{}.tbc".format(self.lang)):
+            print("Retrying Retail url for", qid)
+            yield response.follow(self.base_url_retail.format(self.lang, qid), self.parse)
+            return
 
         result = {
             "id": int(qid),
@@ -98,18 +110,18 @@ class QuestSpider(scrapy.Spider):
 
     def __filter_text_snippets(self, text_snippets):
         data_list = []
-        lastTextSegment = False  # This is True if the segment is the last of the current category
+        last_text_segment = False  # This is True if the segment is the last of the current category
         for t in text_snippets:
             t = self.__filter_text(t)
             if not t.strip():  # Segment just contains whitespaces/linebreaks
                 continue
 
-            if lastTextSegment or not data_list:  # The previous segment was the last of a category (objective/description)
-                lastTextSegment = t.endswith("\n")
+            if last_text_segment or not data_list:  # The previous segment was the last of a category (objective/description)
+                last_text_segment = t.endswith("\n")
                 t = t.replace("\n", "")
                 data_list.append([t.strip()])
             else:
-                lastTextSegment = t.endswith("\n")
+                last_text_segment = t.endswith("\n")
                 t = t.replace("\n", "")
                 data_list[-1].append(t.strip())  # Append to the existing list
         return list(filter(None, data_list))

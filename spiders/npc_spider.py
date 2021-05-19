@@ -2,7 +2,6 @@ from typing import Union, Dict, Tuple
 
 import scrapy
 from scrapy import signals, Spider
-from scrapy.shell import inspect_response
 
 from ids import NPC_IDS
 from utils.formatter import Formatter
@@ -14,20 +13,29 @@ class NPCSpider(scrapy.Spider):
     start_urls = []
     npc_names = []
     lang = ""
-    base_url = "https://{}.classic.wowhead.com/npc={}/"
+    version = ""
+    base_url_retail = "https://{}.wowhead.com/npc={}/"
+    base_url_tbc = "https://{}.tbc.wowhead.com/npc={}/"
+    base_url_classic = "https://{}.classic.wowhead.com/npc={}/"
 
     xpath_name = "//h1[@class='heading-size-1']//text()"
 
-    def __init__(self, lang="en", **kwargs) -> None:
+    def __init__(self, lang, version, **kwargs) -> None:
         super().__init__(**kwargs)
         self.lang = lang
+        self.version = version
+
+        base_url = self.base_url_classic
+        if version == "tbc":
+            base_url = self.base_url_tbc
+
         if lang == "mx":
-            self.base_url = "https://db.wowlatinoamerica.com/?npc={}"
-            self.start_urls = [self.base_url.format(nid) for nid in NPC_IDS]
+            base_url = "https://db.wowlatinoamerica.com/?npc={}"
+            self.start_urls = [base_url.format(nid) for nid in NPC_IDS]
             # self.start_urls = [self.base_url.format(qid) for qid in [7]]
             self.xpath_name = "//div[@class='text']/h1/text()"
         else:
-            self.start_urls = [self.base_url.format(lang, nid) for nid in NPC_IDS]
+            self.start_urls = [base_url.format(lang, nid) for nid in NPC_IDS]
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs) -> Spider:
@@ -47,6 +55,11 @@ class NPCSpider(scrapy.Spider):
 
         # inspect_response(response, self)
         name, subname = self.__parse_name(response)
+
+        if (name == "" or subname == "") and self.version == "tbc" and response.url.startswith("https://{}.tbc".format(self.lang)):
+            print("Retrying Retail url for", npc_id)
+            yield response.follow(self.base_url_retail.format(self.lang, npc_id), self.parse)
+            return
 
         if name:
             result = {
@@ -71,7 +84,7 @@ class NPCSpider(scrapy.Spider):
         subname = ""
 
         if not name:
-            return ""
+            return "", ""
 
         if name.startswith("[Deprecated for 4.x]"):
             name = name[20:]
