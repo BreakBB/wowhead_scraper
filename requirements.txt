@@ -26,7 +26,7 @@ PyHamcrest==2.0.2
 pylint==2.6.0
 pyOpenSSL==19.1.0
 queuelib==1.5.0
-Scrapy==2.3.0
+Scrapy==2.5.1
 service-identity==18.1.0
 six==1.15.0
 toml==0.10.1
