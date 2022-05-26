@@ -30,7 +30,7 @@ Scrapy==2.5.1
 service-identity==18.1.0
 six==1.15.0
 toml==0.10.1
-Twisted==22.1.0
+Twisted==22.4.0
 w3lib==1.22.0
 wrapt==1.12.1
 zope.interface==5.1.0
