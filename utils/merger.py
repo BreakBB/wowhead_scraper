@@ -7,15 +7,15 @@ from shutil import copyfile
 class Merger:
     lang: str
     target: str
-    lang_dir: Path
+    target_dir: Path
 
     def __init__(self, lang="en", target="Npcs"):
         self.lang = lang
         self.target = target
 
-        self.lang_dir = OUTPUT_DIR / lang
-        if not self.lang_dir.exists():
-            self.lang_dir.mkdir()
+        self.target_dir = OUTPUT_DIR / target
+        if not self.target_dir.exists():
+            self.target_dir.mkdir()
 
     def __call__(self):
         print("Starting Merger...")
@@ -26,13 +26,13 @@ class Merger:
         print("Merging done!")
 
     def __get_files(self):
-        old_file = self.lang_dir / "lookup{}_old.lua".format(self.target)
+        old_file = self.target_dir / "lookup{}_old.lua".format(self.target)
         if not old_file.exists():
             raise ValueError("Could not find old lookup file '{}'".format(old_file))
-        new_file = self.lang_dir / "lookup{}.lua".format(self.target)
+        new_file = self.target_dir / "lookup{}.lua".format(self.target)
         if not new_file.exists():
             raise ValueError("Could not find new lookup file '{}'".format(new_file))
-        temp_file = self.lang_dir / "lookup{}_temp.lua".format(self.target)
+        temp_file = self.target_dir / "lookup{}_temp.lua".format(self.target)
         return new_file, old_file, temp_file
 
     def __copy_lines(self, new_file, old_file, temp_file):
@@ -69,15 +69,15 @@ class Merger:
     def __rename_files(self, new_file: Path, old_file: Path, temp_file: Path):
         while old_file.exists():
             old_file.unlink()
-        previous_path = self.lang_dir / "lookup{}_previous.lua".format(self.target)
+        previous_path = self.target_dir / "lookup{}_previous.lua".format(self.target)
         while previous_path.exists():
             previous_path.unlink()
         new_file.rename(previous_path)
-        lookup_path = Path(self.lang_dir / "lookup{}.lua".format(self.target))
+        lookup_path = Path(self.target_dir / "lookup{}.lua".format(self.target))
         while lookup_path.exists():
             lookup_path.unlink()
         temp_file.rename(lookup_path)
-        copyfile(str(lookup_path), self.lang_dir / "lookup{}_old.lua".format(self.target))
+        copyfile(str(lookup_path), self.target_dir / "lookup{}_old.lua".format(self.target))
 
 
 if __name__ == '__main__':
