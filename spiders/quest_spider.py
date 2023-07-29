@@ -8,6 +8,9 @@ from utils.formatter import Formatter
 
 from lang_data import get_filter_list_by_lang
 
+import re
+import json
+
 
 class QuestSpider(scrapy.Spider):
     name = "quest_scraper"
@@ -60,12 +63,16 @@ class QuestSpider(scrapy.Spider):
         title = self.__parse_title(response)
 
         description, objective = self.__parse_objective_and_description(response)
+        minLevel = self.__parse_required_level(response)
+        experience = self.__parse_experience(response)
 
         if (description == "" or objective == ""):
             self.__retry_on_retail(response, qid)
 
         result = {
             "id": int(qid),
+            "minLevel": minLevel,
+            "experience": experience,
             "title": title,
             "objective": objective,
             "description": description
@@ -99,6 +106,53 @@ class QuestSpider(scrapy.Spider):
         if title.endswith(" »"):
             title = title[:-2]
         return title.strip()
+
+    def __parse_experience(self, response) -> int:
+        body = str(response.body)
+        #Archive
+        rest = re.search("(\d+,\d+,\d+,\d+|\d+,\d+,\d+|\d+,\d+|\d+) experience", body)
+        if(rest is not None):
+            #print(rest.group(1))
+            experience = rest.group(1)
+            return str(experience).replace(",", "")
+        #else:
+        #    print("Something wong?")
+
+        #WoWhead
+        rest = re.search("g_quests\[\d+\], {(.*?)}", body)
+        if(rest is not None):
+            dataString = "{"+str(rest.group(1))+"}"
+            dataString = dataString.replace("\\", "")
+            questJsonData = json.loads(dataString)
+            #print(rest.group(1))
+            if "xp" in questJsonData:
+                experience = questJsonData["xp"]
+                return experience
+            else:
+                return None
+        return None
+
+    def __parse_required_level(self, response) -> int:
+        body = str(response.body)
+        rest = re.search("Requires level (\d+)", body)
+        if(rest is not None):
+            #print(rest.group(1))
+            minLevel = rest.group(1)
+            return minLevel
+        
+        rest = re.search("Requires level: (\d+)", body)
+        if(rest is not None):
+            #print(rest.group(1))
+            minLevel = rest.group(1)
+            return minLevel
+
+        #"reqlevel":1
+        rest = re.search('"reqlevel":(\d+)', body)
+        if(rest is not None):
+            #print(rest.group(1))
+            minLevel = rest.group(1)
+            return minLevel
+        return None
 
     def __parse_objective_and_description(self, response):
         text_snippets = response.xpath(self.xpath_objective_and_description).extract()
