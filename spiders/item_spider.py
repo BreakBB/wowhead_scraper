@@ -15,9 +15,10 @@ class ItemSpider(scrapy.Spider):
     npc_names = []
     lang = ""
     version = ""
-    base_url_retail = "https://{}.wowhead.com/item={}/"
-    base_url_tbc = "https://{}.tbc.wowhead.com/item={}/"
-    base_url_classic = "https://{}.classic.wowhead.com/item={}/"
+    base_url_retail = "https://wowhead.com/{}/item={}/"
+    base_url_wotlk = "https://wowhead.com/wotlk/{}/item={}/"
+    base_url_tbc = "https://wowhead.com/tbc/{}/item={}/"
+    base_url_classic = "https://wowhead.com/classic/{}/item={}/"
 
     xpath_name = "//h1[@class='heading-size-1']//text()"
 
@@ -27,6 +28,8 @@ class ItemSpider(scrapy.Spider):
         self.version = version
 
         base_url = self.base_url_classic
+        if version == "wotlk":
+            base_url = self.base_url_wotlk
         if version == "tbc":
             base_url = self.base_url_tbc
 

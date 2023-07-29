@@ -14,9 +14,10 @@ class NPCSpider(scrapy.Spider):
     npc_names = []
     lang = ""
     version = ""
-    base_url_retail = "https://{}.wowhead.com/npc={}/"
-    base_url_tbc = "https://{}.tbc.wowhead.com/npc={}/"
-    base_url_classic = "https://{}.classic.wowhead.com/npc={}/"
+    base_url_retail = "https://wowhead.com/{}/npc={}/"
+    base_url_wotlk = "https://wowhead.com/wotlk/{}/npc={}/"
+    base_url_tbc = "https://wowhead.com/tbc/{}/npc={}/"
+    base_url_classic = "https://wowhead.com/classic/{}/npc={}/"
 
     xpath_name = "//h1[@class='heading-size-1']//text()"
 
@@ -26,6 +27,8 @@ class NPCSpider(scrapy.Spider):
         self.version = version
 
         base_url = self.base_url_classic
+        if version == "wotlk":
+            base_url = self.base_url_wotlk
         if version == "tbc":
             base_url = self.base_url_tbc
 

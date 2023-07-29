@@ -15,9 +15,10 @@ class ObjectSpider(scrapy.Spider):
     npc_names = []
     lang = ""
     version = ""
-    base_url_retail = "https://{}.wowhead.com/object={}/"
-    base_url_tbc = "https://{}.tbc.wowhead.com/object={}/"
-    base_url_classic = "https://{}.classic.wowhead.com/object={}/"
+    base_url_retail = "https://wowhead.com/{}/object={}/"
+    base_url_wotlk = "https://wowhead.com/wotlk/{}/object={}/"
+    base_url_tbc = "https://wowhead.com/tbc/{}/object={}/"
+    base_url_classic = "https://wowhead.com/classic/{}/object={}/"
 
     xpath_name = "//h1[@class='heading-size-1']//text()"
 
@@ -27,6 +28,8 @@ class ObjectSpider(scrapy.Spider):
         self.version = version
 
         base_url = self.base_url_classic
+        if version == "wotlk":
+            base_url = self.base_url_wotlk
         if version == "tbc":
             base_url = self.base_url_tbc
 

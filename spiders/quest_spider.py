@@ -18,9 +18,10 @@ class QuestSpider(scrapy.Spider):
     quest_data = []
     lang = ""
     version = ""
-    base_url_retail = "https://{}.wowhead.com/quest={}/"
-    base_url_tbc = "https://{}.tbc.wowhead.com/quest={}/"
-    base_url_classic = "https://{}.classic.wowhead.com/quest={}/"
+    base_url_retail = "https://wowhead.com/{}/quest={}/"
+    base_url_wotlk = "https://wowhead.com/wotlk/{}/quest={}/"
+    base_url_tbc = "https://wowhead.com/tbc/{}/quest={}/"
+    base_url_classic = "https://wowhead.com/classic/{}/quest={}/"
 
     xpath_title = "//div[@class='text']/h1[@class='heading-size-1']/text()"
     xpath_objective_and_description = "//div[@class='block-block-bg is-btf']//following-sibling::text()"
@@ -31,6 +32,8 @@ class QuestSpider(scrapy.Spider):
         self.version = version
 
         base_url = self.base_url_classic
+        if version == "wotlk":
+            base_url = self.base_url_wotlk
         if version == "tbc":
             base_url = self.base_url_tbc
 

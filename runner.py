@@ -61,13 +61,11 @@ class Runner:
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-l", "--lang", help="The language you want to scrape. Default: 'en'",
-                        type=str)
-    parser.add_argument("-t", "--target", help="The target you want to scrape. Possible values are 'npc', 'quest', 'item', 'object' and "
-                                               "'xp' . Default: 'npc'",
-                        type=str)
-    parser.add_argument("-v", "--version", help="The version of WoW Classic you want to scrape. Either 'tbc' or 'classic'. Default: 'tbc'",
-                        type=str)
+    parser.add_argument("-l", "--lang", help="The language you want to scrape. Default: 'en'", type=str)
+    parser.add_argument("-t", "--target", help="The target you want to scrape."
+                                               "Possible values are 'npc', 'quest', 'item', 'object' and 'xp'. Default: 'npc'", type=str)
+    parser.add_argument("-v", "--version", help="The version of WoW Classic you want to scrape."
+                                                "Possible values are 'classic', 'tbc' and 'wotlk'. Default: 'wotlk'", type=str)
     args = parser.parse_args()
 
     if args.lang is None:
@@ -75,7 +73,7 @@ if __name__ == '__main__':
     if args.target is None:
         args.target = "npc"
     if args.version is None:
-        args.version = 'tbc'
+        args.version = 'wotlk'
 
     runner = Runner(args.lang, args.target, args.version)
     runner.run()
