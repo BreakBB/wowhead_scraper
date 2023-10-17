@@ -32,6 +32,6 @@ tldextract==3.4.4
 Twisted==22.10.0
 twisted-iocpsupport==1.0.3
 typing_extensions==4.7.1
-urllib3==2.0.4
+urllib3==2.0.7
 w3lib==2.1.1
 zope.interface==6.0
